@@ -1,5 +1,5 @@
 #!/bin/sh
-# install ruby 1.8.7p352 build for arm-linux -- 10/20/12 brent@mbari.org
+# install ruby 1.8.7p352 build for arm-linux -- 8/16/14 brent@mbari.org
 # also install modules needed for ESP unless 
 #   coreOnly environment variable is set
 #
@@ -36,9 +36,8 @@ echo "  for execution at $TARGETTOP on the ARM target"
 PATH=`remove . : $PATH`  #remove current directory from PATH
 top=$PWD
 echo Building ruby for $ARMHOST target
-export RUBYLIB=$PWD
 rbcfg=rbconfig.rb
-make -o miniruby fake.rb ./.rbconfig.time
+make RUBYLIB=$top/lib -o miniruby fake.rb ./.rbconfig.time
 
 #This is required so that ruby's extmk.rb script will look in the target
 #libs when checking dependencies.
@@ -46,8 +45,8 @@ export prefix=$ARMPREFIX
 
 rm -rf $HOSTTOP/bin/ruby $HOSTTOP/lib/ruby &&
 mkdir -p $HOSTTOP &&
-make -o miniruby -j4 prefix=$prefix all &&
-make -o miniruby install || exit 1
+make RUBYLIB=$top/lib -o miniruby -j4 prefix=$prefix all &&
+make RUBYLIB=$top/lib -o miniruby install || exit 1
 [ -n "$coreOnly" ] || {
   echo "   Installing extensions required by MBARI ESP:"
   cd $startDir
