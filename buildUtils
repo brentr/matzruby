@@ -6,8 +6,12 @@
 # RUBYLIB=~/armHost/usr/local/lib/ruby/1.6/arm-linux buildUtils clean install
 
 toolDirs='mbarilib termios'
-defdir=$PWD
-: ${RUBY:="$defdir/miniruby -I$defdir/lib"}
+defdir=`dirname $0`
+case $defdir in
+  /*) ;;
+  *)  defdir=$PWD/$defdir ;;
+esac
+: ${RUBY:="$defdir/miniruby -I$defdir -I$defdir/lib"}
 for d in $toolDirs; do
   echo "Making $d:"
   cd $d
