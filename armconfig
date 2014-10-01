@@ -32,7 +32,7 @@ LDFLAGS=-L${ARMPREFIX}/lib \
 CPPFLAGS=-I${ARMPREFIX}/include \
 RPATHFLAG=" -Wl,-R$TARGETTOP/lib" \
 configure --disable-option-checking --disable-rpath \
-   --host=$ARMHOST --prefix=$TARGETTOP --disable-ipv6 \
+   --host=$ARMHOST --prefix=$TARGETTOP --disable-ipv6 --without-X11 \
    --enable-mbari-api --disable-pthread --disable-ucontext $@ ||
  exit 2
 echo 'Patching RUBY_*_LIB* in config.h for target'
