@@ -171,7 +171,7 @@ module IRB
 	    output_value if @context.echo?
 	    exc = nil
 	  rescue Interrupt => exc
-	  rescue SystemExit, SignalException
+	  rescue SystemExit, SignalException => exc
 	    raise
 	  rescue ThreadError => exc
 	    3.times {Thread.pass}
