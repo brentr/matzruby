@@ -1,8 +1,6 @@
 ####################  mbari.rb -- brent@mbari.org  #####################
-# $Source: /home/cvs/ESP/gen2/software/ruby/mbari.rb,v $
-# $Id: mbari.rb,v 1.18 2007/11/25 23:03:20 brent Exp $
 #
-#  MBARI Generic (application-independent) utilites
+#  MBARI Generic (application-independent) utilites -- revised: 2/26/15
 #
 #  Selected Methods:
 #   Module.rename_method -> alias_method only if alias dosn't already exist
@@ -59,7 +57,7 @@ end
 
 
 class Module
-  unless defined? constants_at
+  unless respond_to? :constants_at
     def constants_at
     #return Array of names of constants defined in specified module
       acs = ancestors
@@ -77,12 +75,12 @@ class Module
 
   private
   def rename_method newId,oldId
-    alias_method newId, oldId unless respond_to? newId
+    alias_method newId, oldId unless method_defined? newId
   end
 end
 
 class Hash
-  def join (sep = " => ", m=:to_s)
+  def join(sep = " => ", m=:to_s)
   # most useful for displaying hashes with puts hsh.join
     strAry = []
     each {|key,value| strAry << key.inspect+sep+value.method(m).call}
