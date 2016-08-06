@@ -1,5 +1,9 @@
-ext/thread_backtrace/Makefile
+Makefile
+.ext
+.installed.list
+*.status
 pkg
 *.bundle
 *.so
 *.o
+*.log

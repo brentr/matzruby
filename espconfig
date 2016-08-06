@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ruby 1.8.7p352 build for arm-linux -- 11/19/12 brent@mbari.org
+# configure ESP ruby 1.8.7p352 build for workstation -- 8/5/16 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
@@ -10,6 +10,14 @@ for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
 export CC CFLAGS CXXFLAGS
+[ `which dpkg-architecture` ] && {
+  arch="/usr/lib/`dpkg-architecture -qDEB_HOST_MULTIARCH`"
+  tcfg=
+  [ -r "$arch/tclConfig.sh" ] &&
+    tcfg="--with-tclConfig-file=$arch/tclConfig.sh"
+  [ -r "$arch/tkConfig.sh" ] &&
+    tcfg="$tcfg --with-tkConfig-file=$arch/tkConfig.sh"
+}
 rm -f config.cache configure `find ext -name Makefile` && 
 autoconf && exec configure --prefix=/opt/mbari \
-  --enable-mbari-api --enable-pthread --disable-ucontext $@
+  --enable-mbari-api --enable-pthread --disable-ucontext $tcfg $@

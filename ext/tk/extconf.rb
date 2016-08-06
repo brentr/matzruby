@@ -2024,6 +2024,9 @@ if (TkLib_Config["tcltk-framework"] ||
   $defs << %[-DRUBY_VERSION=\\"#{RUBY_VERSION}\\"]
   $defs << %[-DRUBY_RELEASE_DATE=\\"#{RUBY_RELEASE_DATE}\\"]
 
+  #avoid repeating libs -- brent@mbari.org 8/5/16
+  w=$libs.split.uniq
+  $libs=w.join ' '
   create_makefile("tcltklib")
 
   puts "\nFind Tcl/Tk libraries. Make tcltklib.so which is required by Ruby/Tk."
