@@ -2,7 +2,7 @@
 #   irb/ruby-lex.rb - ruby lexcal analyzer
 #   	$Release Version: 0.9.5$
 #   	by Keiju ISHITSUKA(keiju@ruby-lang.org)
-#       revised 12/23/15  brent@mbari.org to tokenize unknown characters
+#       revised 8/5/16  brent@mbari.org to tokenize unknown characters
 #
 # --
 #
@@ -282,6 +282,7 @@ class RubyLex
       begin
 	raise SyntaxError, "Invalid (Unicode?) char #{getc.dump}" unless
           tk = @OP.match(self)
+        @space_seen = tk.kind_of?(TkSPACE)
       rescue SyntaxError
 	raise if @exception_on_syntax_error
 	tk = TkError.new(@seek, @line_no, @char_no)
