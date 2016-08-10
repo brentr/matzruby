@@ -6,6 +6,7 @@
 # also note that gcc 4.7 is not compatible.  Use gcc 4.6 or lower.
 : ${CFLAGS:="-O2 -g -fno-stack-protector"}
 : ${CXXFLAGS:=$CFLAGS}
+: ${CC:=gcc-4.6}
 for mod in mbarilib termios .; do 
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
