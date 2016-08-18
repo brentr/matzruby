@@ -1,5 +1,5 @@
 #!/bin/sh
-# install ruby 1.8.7p352 build for arm-linux -- 8/16/14 brent@mbari.org
+# install ruby 1.8.7p352 build for arm-linux -- 9/1/15 brent@mbari.org
 # also install modules needed for ESP unless 
 #   coreOnly environment variable is set
 #
@@ -23,30 +23,31 @@ remove ()
 }
 
 startDir=$PWD
-: ${DESTDIR:=$HOME/armHost}
+: ${HOSTTOP:=$HOME/armHost}
 : ${ARMGCC:=/arm}
 : ${ARMPREFIX:=$ARMGCC/usr}
 : ${ARMSTRIP:=$ARMGCC/bin/strip}
 : ${TARGETTOP:=/opt/mbari}
-: ${HOSTTOP:=$DESTDIR$TARGETTOP}
-export DESTDIR
+: ${TOP:=$HOSTTOP$TARGETTOP}
+export DESTDIR=$HOSTTOP
 
 echo "Installing in $HOSTTOP"
 echo "  for execution at $TARGETTOP on the ARM target"
+
 PATH=`remove . : $PATH`  #remove current directory from PATH
-top=$PWD
+srctop=$PWD
 echo Building ruby for $ARMHOST target
 rbcfg=rbconfig.rb
-make RUBYLIB=$top/lib -o miniruby fake.rb ./.rbconfig.time
+make RUBYLIB=$srctop/lib -o miniruby fake.rb ./.rbconfig.time
 
 #This is required so that ruby's extmk.rb script will look in the target
 #libs when checking dependencies.
 export prefix=$ARMPREFIX
 
-rm -rf $HOSTTOP/bin/ruby $HOSTTOP/lib/ruby &&
-mkdir -p $HOSTTOP &&
-make RUBYLIB=$top/lib -o miniruby -j4 prefix=$prefix all &&
-make RUBYLIB=$top/lib -o miniruby install || exit 1
+rm -rf $TOP/bin/ruby $TOP/lib/ruby &&
+mkdir -p $TOP &&
+make RUBYLIB=$srctop/lib -o miniruby -j4 prefix=$prefix all &&
+make RUBYLIB=$srctop/lib -o miniruby install || exit 1
 [ -n "$coreOnly" ] || {
   echo "   Installing extensions required by MBARI ESP:"
   cd $startDir
@@ -55,14 +56,14 @@ make RUBYLIB=$top/lib -o miniruby install || exit 1
 }
 
 echo "Changing prefix from $ARMGCC to $TARGETTOP in $rbcfg"
-cd $top &&
+cd $srctop &&
 sed -e "s:+ \"$prefix\":+ \"$TARGETTOP\":" $rbcfg >$rbcfg.patched &&
 mv -f $rbcfg.patched $rbcfg || {
   echo "Failed to patch $rbcfg"
   exit 2
 }
 
-cd $HOSTTOP || exit 2
+cd $TOP || exit 2
 
 echo "Stripping, Deleting docs, intermediate files and empty directories"
 rm -rf share lib/ruby/1.8/rdoc lib/ruby/1.8/test/unit/ui
@@ -86,6 +87,6 @@ libpthread=`echo $ARMGCC/lib/libpthread-*.so`
   $ARMSTRIP $libpthread -o $DESTDIR/lib/`basename $libpthread` &&
   cp -a $ARMGCC/lib/libpthread.so* $DESTDIR/lib || exit 8
 }
-echo "Successfully Installed Ruby environment at $HOSTTOP"
+echo "Successfully Installed Ruby environment at $TOP"
 
 
