@@ -1,6 +1,4 @@
 ##################  sourceref.rb -- brent@mbari.org  #####################
-# $Source: /home/cvs/ESP/gen2/software/ruby/sourceref.rb,v $
-# $Id: sourceref.rb,v 1.35 2013/01/15 01:07:02 brent Exp $
 #
 #  The SourceRef class relies on a patched version of ruby/eval.c
 #  to provide access to the source file and line # where every Method
@@ -153,14 +151,14 @@ class SourceRef   #combines source file name and line number
     if disp=ENV["DISPLAY"]
       path = @@remote.remap(File.expand_path(file))
       if disp.length>1
-        neditArgs = "-lm Ruby "
-        neditArgs<< "-read " if readonly
-        neditArgs<< "-line #{line} " if hasLine
-	neditArgs<<"#{options} " if options
+        args = "-lm Ruby "
+        args<< "-read " if readonly
+        args<< "-line #{line} " if hasLine
+	args<<"#{options} " if options
+        args.strip!
+        svr="-noask -svrname #{ENV["USER"]}@#{`hostname`.strip}"
         return self if sys( <<-END
-	  PATH=~/bin:$PATH nohup redit #{neditArgs} "#{path}">/dev/null 2>&1 ||
-      	  NeditArgs="#{neditArgs}" Nedit \"#{path}\">/dev/null 2>&1 ||
-	  nedit #{neditArgs} \"#{path}\" &
+NeditArgs=\'#{svr}\' Nedit #{args} \"#{path}\" || nedit #{args} \"#{path}\"
       	END
         )
       end
