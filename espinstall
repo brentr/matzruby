@@ -6,16 +6,13 @@
 make -j5 all || exit 3
 sudo make install DESTDIR=$DESTDIR || exit 1
 sudo chown $USER .installed.list || exit 2
-  
+
 [ -n "$coreOnly" ] || {
   echo "   Installing extensions required by MBARI ESP:"
   PATH=.:$PATH
-  sudo rm -f termios/*.log termios/*.so
   buildUtils clean all &&
   echo "Installing MBARI extensions..."  &&
-  sudo ./miniruby inst-mbari.rb $DESTDIR &&
-  sudo ./buildUtils install &&
-  sudo chown $USER termios/*.log termios/*.so
+  sudo ./buildUtils install
 }
 
 cd /opt/mbari/share/man/man1 &&

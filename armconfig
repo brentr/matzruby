@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ruby 1.8.7p352 build for arm-linux -- 11/14/12 brent@mbari.org
+# configure ruby 1.8.7p352 build for arm-linux -- 9/1/16 brent@mbari.org
 # for gcc x86 add:
 # -fno-stack-protector
 # to CFLAGS
@@ -10,11 +10,12 @@
 : ${ARMHOST:=arm-softfloat-linux}
 : ${CC:=$ARMGCC/bin/gcc}
 : ${TARGETTOP:=${1-/opt/mbari}}
-for mod in mbarilib termios .; do 
+for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
 export CFLAGS CXXFLAGS
-rm -f config.cache configure && autoconf &&
+rm -f config.cache configure ext/readline/libreadline.so*
+autoconf || exit $?
 if [ ! -x miniruby ]; then
   configure --enable-mbari-api &&
   echo Building miniruby for this host
@@ -41,7 +42,7 @@ sed -e "s:\"$ARMPREFIX:\"$TARGETTOP:g" config.h >config.h.patched || {
   exit 3
 }
 #collect the trash more often
-echo "#define GC_MALLOC_LIMIT 2000000" >> config.h.patched 
+echo "#define GC_MALLOC_LIMIT 2000000" >> config.h.patched
 mv -f config.h.patched config.h || exit 6
 
 echo 'Patching Makefile for cross compilation'

@@ -13,16 +13,20 @@ case $defdir in
 esac
 : ${RUBY:="$defdir/miniruby -I$defdir -I$defdir/lib"}
 for d in $toolDirs; do
-  echo "Making $d:"
-  cd $d
-  $RUBY extconf.rb || exit 1
-  make $@ || exit 1
-  cd ..
+  cd $d && {
+    for mktarget; do
+      [ "$mktarget" = clean ] && {
+        echo "Making $d:"
+        $RUBY extconf.rb || exit $?
+      }
+    done
+    make "$@" || exit 1
+    cd ..
+  }
 done
-
 for mktarget; do  #for things that don't have an explicit "build" operation
-  [ "$mktarget" = "install" ] && {  #install IRB and MBARI misc extensions
-    echo "Installing MBARI extensions..."
+  [ "$mktarget" = install ] && {
+    echo "Installing MBARI core Ruby libraries..."
     $RUBY inst-mbari.rb $DESTDIR || exit 32
     break
   }
