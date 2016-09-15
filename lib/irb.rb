@@ -5,11 +5,7 @@
 #   	$Date: 2008/06/10 22:01:32 $
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #
-# --
-#
-#stores most recent exception -- brent@mbari.org 7/15/03
-#use __send__ rather than call method in output_value to avoid security error
-# -- brent@mbari.org 10/12/11
+# -- brent@mbari.org 9/15/16
 #
 #
 require "e2mmap"
@@ -172,7 +168,7 @@ module IRB
 	    exc = nil
 	  rescue Interrupt => exc
 	  rescue SystemExit, SignalException => exc
-	    raise
+	    raise exc
 	  rescue ThreadError => exc
 	    3.times {Thread.pass}
 	  rescue Exception => exc
