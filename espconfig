@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ESP ruby 1.8.7p352 build for workstation -- 9/1/16 brent@mbari.org
+# configure ESP ruby 1.8.7p352 build for workstation -- 5/5/17 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
@@ -12,8 +12,8 @@ for mod in mbarilib termios .; do
 done
 export CC CFLAGS CXXFLAGS
 rm -f ext/readline/libreadline.so*
-[ `which dpkg-architecture` ] && {
-  lib="/lib/`dpkg-architecture -qDEB_HOST_MULTIARCH`"
+[ "$lib" -o `which dpkg-architecture` ] && {
+  [ "$lib" ] || lib="/lib/`dpkg-architecture -qDEB_HOST_MULTIARCH`"
 
   #link Ruby readline extension with libreadline.5
   oldReadline=$lib/libreadline.so.5
