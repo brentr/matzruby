@@ -26,7 +26,7 @@ rm -f ext/readline/libreadline.so*
 
   #find the proper tcl support file in Debian's multiarch scheme
   tcfg=
-  usr="/usr/$lib"
+  usr="/usr$lib"
   [ -r "$usr/tclConfig.sh" ] &&
     tcfg="--with-tclConfig-file=$usr/tclConfig.sh"
   [ -r "$usr/tkConfig.sh" ] &&
