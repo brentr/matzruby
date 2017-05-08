@@ -13,13 +13,12 @@ export CC CFLAGS CXXFLAGS
 rm -f ext/readline/libreadline.so*
 [ `which dpkg-architecture` ] && {
   lib="/lib/`dpkg-architecture -qDEB_HOST_MULTIARCH`"
-
-  #link Ruby readline extension with libreadline.5
-  oldReadline=$lib/libreadline.so.5
-  if [ -r $oldReadline ]; then
-    ln -s $oldReadline ext/readline/libreadline.so || exit $?
+    #link Ruby readline extension with libreadline.5
+  [ "$readline5" ] || readline5=$lib/libreadline.so.5
+  if [ -r $readline5 ]; then
+    ln -s $readline5 ext/readline/libreadline.so || exit $?
   else
-    echo "WARNING:  Missing $oldReadline  (version 6 is incompatible)" >&2
+    echo "WARNING:  Missing $readline5  (version 6 is incompatible)" >&2
     sleep 5
   fi
 
