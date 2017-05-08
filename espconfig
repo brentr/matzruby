@@ -4,7 +4,7 @@
 #  -fno-stack-protector
 # to CFLAGS
 # also note that gcc >=4.7 requires -fno-tree-dce
-: ${CFLAGS:="-Os -g -Wclobbered -fno-tree-dce -fno-stack-protector"}
+: ${CFLAGS:="-O2 -g -Wclobbered -fno-tree-dce -fno-stack-protector"}
 : ${CXXFLAGS:=$CFLAGS}
 for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
