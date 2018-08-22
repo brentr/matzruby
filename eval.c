@@ -6318,6 +6318,24 @@ rb_apply(recv, mid, args)
     return rb_call(CLASS_OF(recv), recv, mid, argc, argv, 1, Qundef);
 }
 
+static VALUE
+send(argc, argv, recv, scope, self)
+    int argc, scope;
+    VALUE *argv;
+    VALUE recv, self;
+{
+    VALUE vid;
+
+    if (argc == 0) rb_raise(rb_eArgError, "no method name given");
+
+    vid = *argv++; argc--;
+    PUSH_ITER(rb_block_given_p()?ITER_PRE:ITER_NOT);
+    vid = rb_call(CLASS_OF(recv), recv, rb_to_id(vid), argc, argv, scope, self);
+    POP_ITER();
+
+    return vid;
+}
+
 /*
  *  call-seq:
  *     obj.send(symbol [, args...])        => obj
@@ -6335,23 +6353,38 @@ rb_apply(recv, mid, args)
  *     k = Klass.new
  *     k.send :hello, "gentle", "readers"   #=> "Hello gentle readers"
  */
-
 static VALUE
 rb_f_send(argc, argv, recv)
     int argc;
     VALUE *argv;
     VALUE recv;
 {
-    VALUE vid;
+	return send(argc, argv, recv, 1, Qundef);
+}
 
-    if (argc == 0) rb_raise(rb_eArgError, "no method name given");
+/*
+ *  call-seq:
+ *     obj.public_send(symbol [, args...])        => obj
+ *
+ *  Invokes the public method identified by _symbol_, passing it any
+ *  arguments specified.
+ *
+ *     class Klass
+ *       def hello(*args)
+ *         "Hello " + args.join(' ')
+ *       end
+ *     end
+ *     k = Klass.new
+ *     k.public_send :hello, "gentle", "readers"   #=> "Hello gentle readers"
+ */
 
-    vid = *argv++; argc--;
-    PUSH_ITER(rb_block_given_p()?ITER_PRE:ITER_NOT);
-    vid = rb_call(CLASS_OF(recv), recv, rb_to_id(vid), argc, argv, 1, Qundef);
-    POP_ITER();
-
-    return vid;
+static VALUE
+rb_f_public_send(argc, argv, recv)
+    int argc;
+    VALUE *argv;
+    VALUE recv;
+{
+	return send(argc, argv, recv, 0, rb_mKernel);
 }
 
 static VALUE
@@ -8383,6 +8416,7 @@ Init_eval()
 
     rb_define_method(rb_mKernel, "send", rb_f_send, -1);
     rb_define_method(rb_mKernel, "__send__", rb_f_send, -1);
+    rb_define_method(rb_mKernel, "public_send", rb_f_public_send, -1);
     rb_define_method(rb_mKernel, "instance_eval", rb_obj_instance_eval, -1);
     rb_define_method(rb_mKernel, "instance_exec", rb_obj_instance_exec, -1);
 
