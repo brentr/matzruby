@@ -1,6 +1,6 @@
 ####################  mbari.rb -- brent@mbari.org  #####################
 #
-#  MBARI Generic (application-independent) utilites -- revised: 2/26/15
+#  MBARI Generic (application-independent) utilites -- revised: 8/22/18
 #
 #  Selected Methods:
 #   Module.rename_method -> alias_method only if alias dosn't already exist
@@ -103,7 +103,7 @@ class Object
     Marshal::load(Marshal::dump(dup))
   end
 
-  def reallyEqual? other  #for recursive equality tests
+  def reallyEqual? other  #for recursive equality tests (deprecated)
     self == other
   end
 
@@ -125,20 +125,6 @@ unless Class.respond_to? :allocate
       class_name = to_s
       Marshal.load "\004\006o:"+(class_name.length+5).chr+class_name+"\000"
     end
-  end
-end
-
-class Struct
-  def reallyEqual? other
-  #built-in Struct#== gets confused when a singleton
-  #method is associated with the Struct.  This version does not.
-    unless equal? other.__id__
-      return false unless self.class.name.eql? other.class.name
-      for i in 0...length
-        return false unless self[i].reallyEqual? other[i]
-      end
-    end
-    true
   end
 end
 
