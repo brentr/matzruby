@@ -3,15 +3,16 @@
   A termios library for Ruby.
   Copyright (C) 1999, 2000, 2002 akira yamada.
  
-  $Id: termios.c,v 1.3 2007/11/10 05:08:23 brent Exp $
-  
+  Revised:  2017/12/20 brent@mbari.org
+    added support for 921600 baud
+
   Revised:  2007/11/7 brent@mbari.org
     initialize [iocl]flags instance vars to zero -- not nil
     improve type checking
 
   Revised:  2006/2/1 brent@mbari.org
     Don't assume that all termios constants can be represented by a FIXNUM
-    CRTSCTS under Linux, for example, is typically a BIGNUM
+    CRTSCTS under 32-bit Linux, for example, is typically a BIGNUM
 
  */
 
@@ -851,6 +852,9 @@ Init_termios()
 #endif
 #ifdef B460800
     define_flag(bauds, B460800);
+#endif
+#ifdef B921600
+    define_flag(bauds, B921600);
 #endif
 #ifdef CIBAUD
     define_flag(cflags, CIBAUD);
