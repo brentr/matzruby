@@ -3608,7 +3608,7 @@ eval_node(slit, VALUE)
 }
 
 
-eval_node(defn, void)
+eval_node(defn, VALUE)
 {
   NODE *body,  *defn;
   VALUE origin = 0;
@@ -3651,6 +3651,7 @@ eval_node(defn, void)
       rb_add_method(rb_singleton_class(ruby_class),
 		    node->nd_mid, defn, NOEX_PUBLIC);
   }
+  return ID2SYM(node->nd_mid);
 }
 
 
@@ -4249,7 +4250,7 @@ again:
 
       case NODE_DEFN:
 	if (node->nd_defn)
-          eval_defn(self,node);
+          result = eval_defn(self,node);
 	break;
 
       case NODE_DEFS:
@@ -6384,7 +6385,7 @@ rb_f_public_send(argc, argv, recv)
     VALUE *argv;
     VALUE recv;
 {
-	return send(argc, argv, recv, 0, rb_mKernel);
+	return send(argc, argv, recv, 0, rb_c_orphan);
 }
 
 static VALUE
