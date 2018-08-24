@@ -30,7 +30,6 @@ VALUE rb_cNilClass;
 VALUE rb_cTrueClass;
 VALUE rb_cFalseClass;
 VALUE rb_cSymbol;
-VALUE rb_c_orphan;
 
 static ID id_eq, id_eql, id_inspect, id_init_copy;
 
@@ -2697,12 +2696,6 @@ Init_Object()
     metaclass = rb_make_metaclass(rb_cObject, rb_cClass);
     metaclass = rb_make_metaclass(rb_cModule, metaclass);
     metaclass = rb_make_metaclass(rb_cClass, metaclass);
-
-    //orphan is an unnamed class outside regular class heirarchy
-    rb_gc_register_address(&rb_c_orphan);
-    rb_c_orphan = rb_class_boot(0);
-    RBASIC(rb_c_orphan)->klass = metaclass = rb_class_boot(0);
-    RBASIC(metaclass)->klass = rb_c_orphan;
 
     rb_mKernel = rb_define_module("Kernel");
     rb_include_module(rb_cObject, rb_mKernel);

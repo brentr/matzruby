@@ -6247,42 +6247,52 @@ rb_call0(klass, recv, id, oid, argc, argv, body, flags)
     return result;
 }
 
+
+static void
+terminatedObj(mid, recv)
+  ID mid;
+  VALUE recv;
+{
+  rb_raise(rb_eNotImpError, "method `%s' called on terminated object (0x%lx)",
+	   rb_id2name(mid), recv);
+}
+
+//cache lookup for rb_call and rb_callPublic
+#define FindMethod__ \
+  NODE  *body;     \
+  int    noex;     \
+  ID     id = mid; \
+  struct cache_entry *ent;  \
+  if (!klass) terminatedObj(mid, recv); \
+  /* is it in the method cache? */  \
+  ent = cache + EXPR1(klass, mid);  \
+  if (ent->mid == mid && ent->klass == klass) {  \
+      if (!ent->method)   \
+	  goto nomethod;  \
+      klass = ent->origin;\
+      id    = ent->mid0;  \
+      noex  = ent->noex;  \
+      body  = ent->method;\
+  } \
+  else if ((body = rb_get_method_body(&klass, &id, &noex)) == 0) {   \
+    nomethod:
+
+
 static VALUE
 rb_call(klass, recv, mid, argc, argv, scope, self)
     VALUE klass, recv;
     ID    mid;
-    int argc;			/* OK */
-    const VALUE *argv;		/* OK */
+    int argc;
+    const VALUE *argv;
     int scope;
     VALUE self;
 {
-    NODE  *body;		/* OK */
-    int    noex;
-    ID     id = mid;
-    struct cache_entry *ent;
-
-    if (!klass) {
-	rb_raise(rb_eNotImpError, "method `%s' called on terminated object (0x%lx)",
-		 rb_id2name(mid), recv);
+    FindMethod__
+      if (scope == 3) {
+	  return method_missing(recv, mid, argc, argv, CSTAT_SUPER);
+      }
+      return method_missing(recv, mid, argc, argv, scope==2?CSTAT_VCALL:0);
     }
-    /* is it in the method cache? */
-    ent = cache + EXPR1(klass, mid);
-    if (ent->mid == mid && ent->klass == klass) {
-	if (!ent->method)
-	    goto nomethod;
-	klass = ent->origin;
-	id    = ent->mid0;
-	noex  = ent->noex;
-	body  = ent->method;
-    }
-    else if ((body = rb_get_method_body(&klass, &id, &noex)) == 0) {
-      nomethod:
-	if (scope == 3) {
-	    return method_missing(recv, mid, argc, argv, CSTAT_SUPER);
-	}
-	return method_missing(recv, mid, argc, argv, scope==2?CSTAT_VCALL:0);
-    }
-
     if (mid != missing && scope == 0) {
 	/* receiver specified form for private method */
 	if (noex & NOEX_PRIVATE)
@@ -6300,9 +6310,27 @@ rb_call(klass, recv, mid, argc, argv, scope, self)
 		return method_missing(recv, mid, argc, argv, CSTAT_PROT);
 	}
     }
-
     return rb_call0(klass, recv, mid, id, argc, argv, body, noex);
 }
+
+
+static VALUE
+rb_callPublic(klass, recv, mid, argc, argv)
+    VALUE klass, recv;
+    ID    mid;
+    int argc;
+    const VALUE *argv;
+{
+    FindMethod__
+      return method_missing(recv, mid, argc, argv, 0);
+    }
+    /* private or protected method */
+    if (noex & (NOEX_PRIVATE | NOEX_PROTECTED))
+	return method_missing(recv, mid, argc, argv,
+                              noex & NOEX_PRIVATE ? CSTAT_PRIV : CSTAT_PROT);
+    return rb_call0(klass, recv, mid, id, argc, argv, body, noex);
+}
+
 
 VALUE
 rb_apply(recv, mid, args)
@@ -6319,23 +6347,13 @@ rb_apply(recv, mid, args)
     return rb_call(CLASS_OF(recv), recv, mid, argc, argv, 1, Qundef);
 }
 
-static VALUE
-send(argc, argv, recv, scope, self)
-    int argc, scope;
-    VALUE *argv;
-    VALUE recv, self;
+
+static void
+noMethodGiven(void)
 {
-    VALUE vid;
-
-    if (argc == 0) rb_raise(rb_eArgError, "no method name given");
-
-    vid = *argv++; argc--;
-    PUSH_ITER(rb_block_given_p()?ITER_PRE:ITER_NOT);
-    vid = rb_call(CLASS_OF(recv), recv, rb_to_id(vid), argc, argv, scope, self);
-    POP_ITER();
-
-    return vid;
+    rb_raise(rb_eArgError, "no method name given");
 }
+
 
 /*
  *  call-seq:
@@ -6360,7 +6378,15 @@ rb_f_send(argc, argv, recv)
     VALUE *argv;
     VALUE recv;
 {
-	return send(argc, argv, recv, 1, Qundef);
+    VALUE vid;
+    if (!argc) noMethodGiven();
+
+    vid = *argv++; argc--;
+    PUSH_ITER(rb_block_given_p()?ITER_PRE:ITER_NOT);
+    vid = rb_call(CLASS_OF(recv), recv, rb_to_id(vid), argc, argv, 1, Qundef);
+    POP_ITER();
+
+    return vid;
 }
 
 /*
@@ -6385,7 +6411,15 @@ rb_f_public_send(argc, argv, recv)
     VALUE *argv;
     VALUE recv;
 {
-	return send(argc, argv, recv, 0, rb_c_orphan);
+    VALUE vid;
+    if (!argc) noMethodGiven();
+
+    vid = *argv++; argc--;
+    PUSH_ITER(rb_block_given_p()?ITER_PRE:ITER_NOT);
+    vid = rb_callPublic(CLASS_OF(recv), recv, rb_to_id(vid), argc, argv);
+    POP_ITER();
+
+    return vid;
 }
 
 static VALUE
