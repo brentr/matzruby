@@ -1,3 +1,5 @@
+$caseFold = 0 #File::FNM_CASEFOLD seems broken on ARM64 debian stretch
+
 ##############################################################
 # extconf.rb for tcltklib
 # release date: 2010-07-30
@@ -593,7 +595,7 @@ def libcheck_for_tclConfig(tcldir, tkdir, tclconf, tkconf)
     tk_regexp = /^.*(tk#{stub}#{tkconf['TK_MAJOR_VERSION']}(?:\.|)#{tkconf['TK_MINOR_VERSION']}.*)\.#{exts}.*$/
   end
 
-  tcllib_ok ||= !tclconf || Dir.glob(File.join(tcldir, tcl_glob), File::FNM_CASEFOLD).find{|file|
+  tcllib_ok ||= !tclconf || Dir.glob(File.join(tcldir, tcl_glob), $caseFold).find{|file|
     if file =~ tcl_regexp
       libname = $1
       ext = $2.downcase
@@ -637,7 +639,7 @@ def libcheck_for_tclConfig(tcldir, tkdir, tclconf, tkconf)
   }
   tclconf['MKMF_PARAMS'] = mkmf_param if tclconf && tcllib_ok
 
-  tklib_ok ||= !tkconf || Dir.glob(File.join(tkdir, tk_glob), File::FNM_CASEFOLD).find{|file|
+  tklib_ok ||= !tkconf || Dir.glob(File.join(tkdir, tk_glob), $caseFold).find{|file|
     if file =~ tk_regexp
       libname = $1
       ext = $2.downcase
