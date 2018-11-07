@@ -2044,7 +2044,7 @@ rb_mod_nesting()
  *
  *  <em>produces:</em>
  *
- *     ["ARGV", "ArgumentError", "Array", "Bignum", "Binding"]
+ *     [:ARGV, :ArgumentError, :Array, :Bignum, :Binding]
  */
 
 static VALUE
@@ -7787,7 +7787,7 @@ rb_mod_protected(argc, argv, module)
  *       def c()  end
  *       private :a
  *     end
- *     Mod.private_instance_methods   #=> ["a", "c"]
+ *     Mod.private_instance_methods   #=> [:a, :c]
  */
 
 static VALUE
@@ -8171,7 +8171,7 @@ errat_setter(val, id, var)
  *     for i in 1..10
  *        # ...
  *     end
- *     local_variables   #=> ["fred", "i"]
+ *     local_variables   #=> [:fred, :i]
  */
 
 static VALUE
@@ -8187,14 +8187,14 @@ rb_f_local_variables()
 	n = *tbl++;
 	for (i=2; i<n; i++) {	/* skip first 2 ($_ and $~) */
 	    if (!rb_is_local_id(tbl[i])) continue; /* skip flip states */
-	    rb_ary_push(ary, rb_str_new2(rb_id2name(tbl[i])));
+	    rb_ary_push(ary, ID2SYM(tbl[i]));
 	}
     }
 
     vars = ruby_dyna_vars;
     while (vars) {
 	if (vars->id && rb_is_local_id(vars->id)) { /* skip $_, $~ and flip states */
-	    rb_ary_push(ary, rb_str_new2(rb_id2name(vars->id)));
+	    rb_ary_push(ary, ID2SYM(vars->id));
 	}
 	vars = vars->next;
     }

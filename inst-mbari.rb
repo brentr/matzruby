@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 BIN_IRB_TOOLS = []
-LIB_IRB_TOOLS = ["mbari.rb", "objectspace.rb", "sourceref.rb"]
+LIB_IRB_TOOLS = ["ruby2compat.rb", "mbari.rb", "objectspace.rb", "sourceref.rb"]
 
 require "rbconfig.rb"
 include Config

@@ -772,7 +772,7 @@ gvar_i(key, entry, ary)
     struct global_entry *entry;
     VALUE ary;
 {
-    rb_ary_push(ary, rb_str_new2(rb_id2name(key)));
+    rb_ary_push(ary, ID2SYM(key));
     return ST_CONTINUE;
 }
 
@@ -782,7 +782,7 @@ gvar_i(key, entry, ary)
  *
  *  Returns an array of the names of global variables.
  *
- *     global_variables.grep /std/   #=> ["$stderr", "$stdout", "$stdin"]
+ *     global_variables.grep /std/   #=> [:$stderr, :$stdout", :$stdin]
  */
 
 VALUE
@@ -796,7 +796,7 @@ rb_f_global_variables()
     if (!NIL_P(rb_backref_get())) {
 	while (*s) {
 	    sprintf(buf, "$%c", *s++);
-	    rb_ary_push(ary, rb_str_new2(buf));
+	    rb_ary_push(ary, ID2SYM(rb_intern(buf)));
 	}
     }
     return ary;
@@ -1108,7 +1108,7 @@ ivar_i(key, entry, ary)
     VALUE ary;
 {
     if (rb_is_instance_id(key)) {
-	rb_ary_push(ary, rb_str_new2(rb_id2name(key)));
+	rb_ary_push(ary, ID2SYM(key));
     }
     return ST_CONTINUE;
 }
@@ -1127,7 +1127,7 @@ ivar_i(key, entry, ary)
  *         @iv = 3
  *       end
  *     end
- *     Fred.new.instance_variables   #=> ["@iv"]
+ *     Fred.new.instance_variables   #=> [:@iv]
  */
 
 VALUE
@@ -1595,7 +1595,7 @@ list_i(key, value, ary)
     ID key, value;
     VALUE ary;
 {
-    rb_ary_push(ary, rb_str_new2(rb_id2name(key)));
+    rb_ary_push(ary, ID2SYM(key));
     return ST_CONTINUE;
 }
 
@@ -1906,7 +1906,7 @@ cv_i(key, value, ary)
     VALUE ary;
 {
     if (rb_is_class_id(key)) {
-	VALUE kval = rb_str_new2(rb_id2name(key));
+	VALUE kval = ID2SYM(key);
 	if (!rb_ary_includes(ary, kval)) {
 	    rb_ary_push(ary, kval);
 	}
@@ -1927,8 +1927,8 @@ cv_i(key, value, ary)
  *     class Two < One
  *       @@var2 = 2
  *     end
- *     One.class_variables   #=> ["@@var1"]
- *     Two.class_variables   #=> ["@@var2", "@@var1"]
+ *     One.class_variables   #=> [:@@var1]
+ *     Two.class_variables   #=> [:@@var2, :@@var1]
  */
 
 VALUE

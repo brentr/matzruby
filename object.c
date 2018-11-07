@@ -1265,8 +1265,8 @@ sym_to_proc(VALUE sym)
  *       end
  *     end
  *     Mod.class              #=> Module
- *     Mod.constants          #=> ["E", "PI", "CONST"]
- *     Mod.instance_methods   #=> ["meth"]
+ *     Mod.constants          #=> [:E, :PI, :CONST]
+ *     Mod.instance_methods   #=> [:meth]
  *
  */
 
@@ -1812,7 +1812,7 @@ rb_mod_attr_writer(argc, argv, klass)
  *     module Mod
  *       attr_accessor(:one, :two)
  *     end
- *     Mod.instance_methods.sort   #=> ["one", "one=", "two", "two="]
+ *     Mod.instance_methods.sort   #=> [:one, :one=, :two, :two=]
  */
 
 static VALUE
@@ -1910,9 +1910,9 @@ rb_mod_const_defined(mod, name)
  *       end
  *     end
  *     k = Klass.new
- *     k.methods[0..9]    #=> ["kMethod", "freeze", "nil?", "is_a?",
- *                             "class", "instance_variable_set",
- *                              "methods", "extend", "__send__", "instance_eval"]
+ *     k.methods[0..9]    #=> [:kMethod, :freeze, :nil?, :is_a?,
+ *                             :class, :instance_variable_set,
+ *                              :methods, :extend, :__send__, :instance_eval]
  *     k.methods.length   #=> 42
  */
 

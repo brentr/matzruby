@@ -1,15 +1,19 @@
-#define RUBY_VERSION "1.8.7"
-#define RUBY_RELEASE_DATE "2018-11-5"
+//this Ruby differs from 1.8.7 in that methods returning Arrays of 
+//identifiers return them as Symbols instead of Strings
+//(for improved efficiency and compatibility with Ruby 1.9 and newer)
+
+#define RUBY_VERSION "1.8.9"
+#define RUBY_RELEASE_DATE "2018-11-7"
 #define RUBY_VERSION_CODE 187
-#define RUBY_RELEASE_CODE 20181105
+#define RUBY_RELEASE_CODE 20181107
 #define RUBY_PATCHLEVEL 352
 
 #define RUBY_VERSION_MAJOR 1
 #define RUBY_VERSION_MINOR 8
-#define RUBY_VERSION_TEENY 7
+#define RUBY_VERSION_TEENY 9
 #define RUBY_RELEASE_YEAR 2018
 #define RUBY_RELEASE_MONTH 11
-#define RUBY_RELEASE_DAY 5
+#define RUBY_RELEASE_DAY 7
 
 #ifdef RUBY_EXTERN
 RUBY_EXTERN const char ruby_version[];

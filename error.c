@@ -821,7 +821,7 @@ rb_invalid_str(str, type)
  *  The full list of operating system errors on your particular platform
  *  are available as the constants of <code>Errno</code>.
  *
- *     Errno.constants   #=> E2BIG, EACCES, EADDRINUSE, EADDRNOTAVAIL, ...
+ *     Errno.constants   #=> :E2BIG, :EACCES, :EADDRINUSE, :EADDRNOTAVAIL, ...
  */
 
 static st_table *syserr_tbl;

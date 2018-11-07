@@ -91,7 +91,7 @@ grep_iter_i(i, arg)
  *  result is stored in the output array.
  *
  *     (1..100).grep 38..44   #=> [38, 39, 40, 41, 42, 43, 44]
- *     c = IO.constants
+ *     c = IO.constants.map{|sym| sym.to_s}
  *     c.grep(/SEEK/)         #=> ["SEEK_END", "SEEK_SET", "SEEK_CUR"]
  *     res = c.grep(/SEEK/) {|v| IO.const_get(v) }
  *     res                    #=> [2, 0, 1]
@@ -1457,8 +1457,8 @@ member_i(item, memo)
  *  Returns <code>true</code> if any member of <i>enum</i> equals
  *  <i>obj</i>. Equality is tested using <code>==</code>.
  *
- *     IO.constants.include? "SEEK_SET"          #=> true
- *     IO.constants.include? "SEEK_NO_FURTHER"   #=> false
+ *     IO.constants.include? :SEEK_SET          #=> true
+ *     IO.constants.include? :SEEK_NO_FURTHER   #=> false
  *
  */
 
@@ -1514,8 +1514,8 @@ enum_each_with_index(obj)
 
 /*
  *  call-seq:
- *     enum.reverse_each {|item| block } 
- *  
+ *     enum.reverse_each {|item| block }
+ *
  *  Traverses <i>enum</i> in reverse order.
  */
 
@@ -1892,4 +1892,3 @@ Init_Enumerable()
     id_cmp  = rb_intern("<=>");
     id_size = rb_intern("size");
 }
-

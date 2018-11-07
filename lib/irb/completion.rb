@@ -14,62 +14,60 @@ module IRB
     @RCS_ID='-$Id$-'
 
     ReservedWords = [
-      "BEGIN", "END",
-      "alias", "and",
-      "begin", "break",
-      "case", "class",
-      "def", "defined", "do",
-      "else", "elsif", "end", "ensure",
-      "false", "for",
-      "if", "in",
-      "module",
-      "next", "nil", "not",
-      "or",
-      "redo", "rescue", "retry", "return",
-      "self", "super",
-      "then", "true",
-      "undef", "unless", "until",
-      "when", "while",
-      "yield",
+      :BEGIN, :END,
+      :alias, :and,
+      :begin, :break,
+      :case, :class,
+      :def, :defined, :do,
+      :else, :elsif, :end, :ensure,
+      :false, :for,
+      :if, :in,
+      :module,
+      :next, :nil, :not,
+      :or,
+      :redo, :rescue, :retry, :return,
+      :self, :super,
+      :then, :true,
+      :undef, :unless, :until,
+      :when, :while,
+      :yield
     ]
+
+    Operators = ["%", "&", "*", "**", "+",  "-",  "/",
+      "<", "<<", "<=", "<=>", "==", "===", "=~", ">", ">=", ">>",
+      "[]", "[]=", "^" ]
 
     CompletionProc = proc { |*arg|
       input = arg[0]
       bind = arg[1] || IRB.conf[:MAIN_CONTEXT].workspace.binding
 
-#puts "input: #{input}"
+#puts "\ninput: #{input}\n"
 
       case input
       when /^(\/[^\/]*\/)\.([^.]*)$/
 	# Regexp
 	receiver = $1
 	message = Regexp.quote($2)
-
-	candidates = Regexp.instance_methods(true)
-	select_message(receiver, message, candidates)
+	select_message(receiver, message, Regexp.instance_methods)
 
       when /^([^\]]*\])\.([^.]*)$/
 	# Array
 	receiver = $1
 	message = Regexp.quote($2)
-
-	candidates = Array.instance_methods(true)
-	select_message(receiver, message, candidates)
+	select_message(receiver, message, Array.instance_methods)
 
       when /^([^\}]*\})\.([^.]*)$/
 	# Proc or Hash
 	receiver = $1
 	message = Regexp.quote($2)
-
-	candidates = Proc.instance_methods(true) | Hash.instance_methods(true)
-	select_message(receiver, message, candidates)
+	select_message(receiver, message,
+          Proc.instance_methods | Hash.instance_methods)
 
       when /^(:[^:.]*)$/
  	# Symbol
 	if Symbol.respond_to?(:all_symbols)
 	  sym = $1
-	  candidates = Symbol.all_symbols.collect{|s| ":" + s.id2name}
-	  candidates.grep(/^#{sym}/)
+	  Symbol.all_symbols.collect{|s| ":" + s.id2name}.grep(/^#{sym}/)
 	else
 	  []
 	end
@@ -77,37 +75,35 @@ module IRB
       when /^::([A-Z][^:\.\(]*)$/
 	# Absolute Constant or class methods
 	receiver = $1
-	candidates = Object.constants
-	candidates.grep(/^#{receiver}/).collect{|e| "::" + e}
+	Object.constants.map!{|sym| sym.to_s}.
+	  grep(/^#{receiver}/).collect{|e| "::" + e}
 
       when /^(((::)?[A-Z][^:.\(]*)+)::?([^:.]*)$/
 	# Constant or class methods
 	receiver = $1
 	message = Regexp.quote($4)
 	begin
-	  candidates = eval("#{receiver}.constants | #{receiver}.methods", bind)
+	  eval("#{receiver}.constants | #{receiver}.methods",bind).
+            map!{|sym| sym.to_s}
 	rescue Exception
-	  candidates = []
-	end
-	candidates.grep(/^#{message}/).collect{|e| receiver + "::" + e}
+	  []
+	end.grep(/^#{message}/).collect{|e| receiver + "::" + e}
 
       when /^(:[^:.]+)\.([^.]*)$/
 	# Symbol
 	receiver = $1
 	message = Regexp.quote($2)
-
-	candidates = Symbol.instance_methods(true)
-	select_message(receiver, message, candidates)
+	select_message(receiver, message, Symbol.instance_methods)
 
       when /^(-?(0[dbo])?[0-9_]+(\.[0-9_]+)?([eE]-?[0-9]+)?)\.([^.]*)$/
 	# Numeric
 	receiver = $1
 	message = Regexp.quote($5)
 
-	begin
-	  candidates = eval(receiver, bind).methods
+	candidates = begin
+	  eval(receiver, bind).methods
 	rescue Exception
-	  candidates = []
+	  []
 	end
 	select_message(receiver, message, candidates)
 
@@ -116,15 +112,15 @@ module IRB
 	receiver = $1
 	message = Regexp.quote($2)
 
-	begin
-	  candidates = eval(receiver, bind).methods
+	candidates = begin
+	  eval(receiver, bind).methods
 	rescue Exception
-	  candidates = []
+	  []
 	end
 	select_message(receiver, message, candidates)
 
       when /^(\$[^.]*)$/
-	global_variables.grep(Regexp.new(Regexp.quote($1)))
+	global_variables.map!{|sym| sym.to_s}.grep(Regexp.new(Regexp.quote($1)))
 
 #      when /^(\$?(\.?[^.]+)+)\.([^.]*)$/
       when /^((\.?[^.]+)+)\.([^.]*)$/
@@ -136,7 +132,7 @@ module IRB
 	lv = eval("local_variables", bind)
 	cv = eval("self.class.constants", bind)
 
-	if (gv | lv | cv).include?(receiver)
+	if (gv | lv | cv).include?(receiver.to_sym)
 	  # foo.func and foo is local var.
 	  candidates = eval("#{receiver}.methods", bind)
 	elsif /^[A-Z]/ =~ receiver and /\./ !~ receiver
@@ -169,9 +165,7 @@ module IRB
 
 	receiver = ""
 	message = Regexp.quote($1)
-
-	candidates = String.instance_methods(true)
-	select_message(receiver, message, candidates)
+	select_message(receiver, message, String.instance_methods)
 
       else
 	candidates = eval(<<-END, bind)
@@ -179,16 +173,13 @@ module IRB
         END
         candidates |= eval("Object.constants", bind) if self.class != Object
 
-	(candidates|ReservedWords).grep(/^#{Regexp.quote(input)}/)
+	(candidates|ReservedWords).map!{|sym| sym.to_s}.
+          grep(/^#{Regexp.quote(input)}/)
       end
     }
 
-    Operators = ["%", "&", "*", "**", "+",  "-",  "/",
-      "<", "<<", "<=", "<=>", "==", "===", "=~", ">", ">=", ">>",
-      "[]", "[]=", "^",]
-
     def self.select_message(receiver, message, candidates)
-      candidates.grep(/^#{message}/).collect do |e|
+      candidates.map!{|sym| sym.to_s}.grep(/^#{message}/).map! do |e|
 	case e
 	when /^[a-zA-Z_]/
 	  receiver + "." + e
@@ -207,6 +198,7 @@ module IRB
         end
       end
       Readline.completion_append_character = nil
+      Readline.basic_quote_characters = ''
       Readline.completion_proc = IRB::InputCompletor::CompletionProc
     end
     install if defined? Readline
