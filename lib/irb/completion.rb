@@ -5,13 +5,11 @@
 #   	$Date$
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #       From Original Idea of shugo@ruby-lang.org
-#       Revised:  5/8/13  brent@mbari.org
+#       Revised:  11/7/18  brent@mbari.org
 #
 
 module IRB
   module InputCompletor
-
-    @RCS_ID='-$Id$-'
 
     ReservedWords = [
       :BEGIN, :END,
@@ -75,8 +73,7 @@ module IRB
       when /^::([A-Z][^:\.\(]*)$/
 	# Absolute Constant or class methods
 	receiver = $1
-	Object.constants.map!{|sym| sym.to_s}.
-	  grep(/^#{receiver}/).collect{|e| "::" + e}
+	Object.constants.map!(&:to_s).grep(/^#{receiver}/).collect{|e| "::" + e}
 
       when /^(((::)?[A-Z][^:.\(]*)+)::?([^:.]*)$/
 	# Constant or class methods
@@ -120,7 +117,7 @@ module IRB
 	select_message(receiver, message, candidates)
 
       when /^(\$[^.]*)$/
-	global_variables.map!{|sym| sym.to_s}.grep(Regexp.new(Regexp.quote($1)))
+	global_variables.map!(&:to_s).grep(Regexp.new(Regexp.quote($1)))
 
 #      when /^(\$?(\.?[^.]+)+)\.([^.]*)$/
       when /^((\.?[^.]+)+)\.([^.]*)$/
@@ -173,13 +170,12 @@ module IRB
         END
         candidates |= eval("Object.constants", bind) if self.class != Object
 
-	(candidates|ReservedWords).map!{|sym| sym.to_s}.
-          grep(/^#{Regexp.quote(input)}/)
+	(candidates|ReservedWords).map!(&:to_s).grep(/^#{Regexp.quote(input)}/)
       end
     }
 
     def self.select_message(receiver, message, candidates)
-      candidates.map!{|sym| sym.to_s}.grep(/^#{message}/).map! do |e|
+      candidates.map!(&:to_s).grep(/^#{message}/).map! do |e|
 	case e
 	when /^[a-zA-Z_]/
 	  receiver + "." + e
