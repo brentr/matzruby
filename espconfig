@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ESP ruby 1.8.7p352 build for workstation -- 5/8/17 brent@mbari.org
+# configure ESP MBARI Ruby build for workstation -- 11/8/18 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS

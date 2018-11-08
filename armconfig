@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ruby 1.8.7p352 build for arm-linux -- 9/1/16 brent@mbari.org
+# configure ruby mbariRuby build for arm-linux -- 11/8/18 brent@mbari.org
 # for gcc x86 add:
 # -fno-stack-protector
 # to CFLAGS
