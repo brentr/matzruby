@@ -3,7 +3,6 @@
  *
  *   Copyright (C) UENO Katsuhiro 2000-2003
  *
- * $Id$
  */
 
 #include <ruby.h>
@@ -342,7 +341,11 @@ static VALUE
 rb_zlib_crc_table(obj)
     VALUE obj;
 {
+#ifdef Z_U4
     const z_crc_t FAR *crctbl;
+#else
+    const uLongf *crctbl;
+#endif
     VALUE dst;
     int i;
 
@@ -1027,7 +1030,7 @@ rb_zstream_avail_out(obj)
 
 /*
  * Allocates +size+ bytes of free space in the output buffer. If there are more
- * than +size+ bytes already in the buffer, the buffer is truncated. Because 
+ * than +size+ bytes already in the buffer, the buffer is truncated. Because
  * free space is allocated automatically, you usually don't need to use this
  * method.
  */
@@ -1360,7 +1363,7 @@ rb_deflate_flush(argc, argv, obj)
 
 /*
  * call-seq: params(level, strategy)
- * 
+ *
  * Changes the parameters of the deflate stream. See zlib.h for details. The
  * output from the stream by changing the params is preserved in output
  * buffer.
@@ -2668,7 +2671,7 @@ rb_gzfile_total_out(obj)
  * Document-class: Zlib::GzipWriter
  *
  * Zlib::GzipWriter is a class for writing gzipped files.  GzipWriter should
- * be used with an instance of IO, or IO-like, object. 
+ * be used with an instance of IO, or IO-like, object.
  *
  * For example:
  *
@@ -3539,21 +3542,21 @@ void Init_zlib()
 /*
  * Document-class: Zlib::GzipFile::NoFooter
  *
- * Raised when gzip file footer is not found. 
+ * Raised when gzip file footer is not found.
  */
 
 /*
  * Document-class: Zlib::GzipFile::CRCError
  *
  * Raised when the CRC checksum recorded in gzip file footer is not equivalent
- * to the CRC checksum of the actual uncompressed data. 
+ * to the CRC checksum of the actual uncompressed data.
  */
 
 /*
  * Document-class: Zlib::GzipFile::LengthError
  *
  * Raised when the data length recorded in the gzip file footer is not equivalent
- * to the length of the actual uncompressed data. 
+ * to the length of the actual uncompressed data.
  */
 
 
