@@ -177,10 +177,10 @@ static VALUE tk_funcall _((VALUE(), int, VALUE*, VALUE));
 /* Tcl's object type */
 #if TCL_MAJOR_VERSION >= 8
 static char *Tcl_ObjTypeName_ByteArray = "bytearray";
-static Tcl_ObjType *Tcl_ObjType_ByteArray;
+static const Tcl_ObjType *Tcl_ObjType_ByteArray;
 
 static char *Tcl_ObjTypeName_String    = "string";
-static Tcl_ObjType *Tcl_ObjType_String;
+static const Tcl_ObjType *Tcl_ObjType_String;
 
 #if TCL_MAJOR_VERSION > 8 || (TCL_MAJOR_VERSION == 8 && TCL_MINOR_VERSION >= 1)
 #define IS_TCL_BYTEARRAY(obj)    ((obj)->typePtr == Tcl_ObjType_ByteArray)

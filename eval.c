@@ -1266,8 +1266,7 @@ set_backtrace(info, bt)
 static void
 error_print()
 {
-    VALUE errat;
-    volatile VALUE eclass;
+    volatile VALUE errat, eclass;
     const char * volatile einfo;
     volatile long elen;
 

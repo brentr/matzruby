@@ -342,7 +342,7 @@ static VALUE
 rb_zlib_crc_table(obj)
     VALUE obj;
 {
-    const unsigned long *crctbl;
+    const z_crc_t FAR *crctbl;
     VALUE dst;
     int i;
 

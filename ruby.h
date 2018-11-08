@@ -575,6 +575,10 @@ VALUE rb_funcall3 _((VALUE, ID, int, const VALUE*));
 int rb_scan_args __((int, const VALUE*, const char*, ...));
 VALUE rb_call_super _((int, const VALUE*));
 
+//added for TKLIB extension
+VALUE rb_proc_new(VALUE(*)(ANYARGS), VALUE);
+VALUE rb_obj_instance_exec(int, VALUE *, VALUE);
+
 VALUE rb_gv_set _((const char*, VALUE));
 VALUE rb_gv_get _((const char*));
 VALUE rb_iv_get _((VALUE, const char*));
