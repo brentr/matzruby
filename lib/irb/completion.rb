@@ -29,10 +29,6 @@ module IRB
       :yield
     ]
 
-    Operators = ["%", "&", "*", "**", "+",  "-",  "/",
-      "<", "<<", "<=", "<=>", "==", "===", "=~", ">", ">=", ">>",
-      "[]", "[]=", "^" ]
-
     CompletionProc = proc { |*arg|
       input = arg[0]
       bind = arg[1] || IRB.conf[:MAIN_CONTEXT].workspace.binding
@@ -63,7 +59,7 @@ module IRB
  	# Symbol
 	if Symbol.respond_to?(:all_symbols)
 	  sym = $1
-	  Symbol.all_symbols.map!{|s| ":"<<s.id2name}.grep(/^#{sym}/)
+	  Symbol.all_symbols.map!{|s| ":"<<s.id2name}.grep /^#{sym}/
 	else
 	  []
 	end
@@ -71,18 +67,17 @@ module IRB
       when /^::([A-Z][^:\.\(]*)$/
 	# Absolute Constant or class methods
 	receiver = $1
-	Object.constants.map!(&:to_s).grep(/^#{receiver}/).map!{|e| "::"<<e}
+	Object.constants.map!(&:to_s).grep(/^#{receiver}/) {|e| "::"<<e}
 
       when /^(((::)?[A-Z][^:.\(]*)+)::?([^:.]*)$/
 	# Constant or class methods
 	receiver = $1
 	message = Regexp.quote($4)
 	begin
-	  eval("#{receiver}.constants | #{receiver}.methods",bind).
-            map!{|sym| sym.to_s}
+	  eval("#{receiver}.constants | #{receiver}.methods",bind).map!(&:to_s)
 	rescue Exception
 	  []
-	end.grep(/^#{message}/).map!{|e| receiver<<"::"<<e}
+	end.grep(/^#{message}/) {|e| receiver + ("::"<<e)}
 
       when /^(:[^:.]+)\.([^.]*)$/
 	# Symbol
@@ -115,7 +110,7 @@ module IRB
 	select_message(receiver, message, candidates)
 
       when /^(\$[^.]*)$/
-	global_variables.map!(&:to_s).grep(Regexp.new(Regexp.quote($1)))
+	global_variables.map!(&:to_s).grep Regexp.new(Regexp.quote($1))
 
 #      when /^(\$?(\.?[^.]+)+)\.([^.]*)$/
       when /^((\.?[^.]+)+)\.([^.]*)$/
@@ -141,14 +136,10 @@ module IRB
 	  # func1.func2
 	  candidates = []
 	  ObjectSpace.each_object Module do |m|
-	    begin
-	      name = m.name
-	    rescue Exception
-	      name = ""
-	    end
-	    next if name != "IRB::Context" and
-	      /^(IRB|SLex|RubyLex|RubyToken)/ =~ name
-	    candidates.concat m.instance_methods(false)
+	    name = m.name
+	    candidates.concat m.instance_methods(false) unless
+              name != "IRB::Context" and
+              /^(IRB|SLex|RubyLex|RubyToken)/ =~ name
 	  end
           candidates.uniq!
 	end
@@ -167,20 +158,17 @@ module IRB
         END
         candidates |= eval("Object.constants", bind) if self.class != Object
 
-	(candidates|ReservedWords).map!(&:to_s).grep(/^#{Regexp.quote(input)}/)
+	(candidates|ReservedWords).map!(&:to_s).grep /^#{Regexp.quote(input)}/
       end
     }
 
     def self.select_message(receiver, message, candidates)
-      candidates.map!(&:to_s).grep(/^#{message}/).map! do |e|
-	case e
-	when /^[a-zA-Z_]/
-	  receiver + ("."<<e)
-	when /^[0-9]/
-	when *Operators
-	  #receiver + (" "<<e)
-	end
+      matches=[]
+      candidates.each do |sym|
+        (e=sym.to_s).start_with? message and /^[a-zA-Z_]/ =~ e and
+	  matches.push receiver + ("."<<e)
       end
+      matches
     end
 
     def self.install
