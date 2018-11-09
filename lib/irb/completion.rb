@@ -1,8 +1,6 @@
 #
 #   irb/completion.rb -
-#   	$Release Version: 0.9$
-#   	$Revision$
-#   	$Date$
+#   	Release Version: 0.9
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #       From Original Idea of shugo@ruby-lang.org
 #       Revised:  11/7/18  brent@mbari.org
@@ -65,7 +63,7 @@ module IRB
  	# Symbol
 	if Symbol.respond_to?(:all_symbols)
 	  sym = $1
-	  Symbol.all_symbols.collect{|s| ":" + s.id2name}.grep(/^#{sym}/)
+	  Symbol.all_symbols.map!{|s| ":"<<s.id2name}.grep(/^#{sym}/)
 	else
 	  []
 	end
@@ -73,7 +71,7 @@ module IRB
       when /^::([A-Z][^:\.\(]*)$/
 	# Absolute Constant or class methods
 	receiver = $1
-	Object.constants.map!(&:to_s).grep(/^#{receiver}/).collect{|e| "::" + e}
+	Object.constants.map!(&:to_s).grep(/^#{receiver}/).map!{|e| "::"<<e}
 
       when /^(((::)?[A-Z][^:.\(]*)+)::?([^:.]*)$/
 	# Constant or class methods
@@ -84,7 +82,7 @@ module IRB
             map!{|sym| sym.to_s}
 	rescue Exception
 	  []
-	end.grep(/^#{message}/).collect{|e| receiver + "::" + e}
+	end.grep(/^#{message}/).map!{|e| receiver<<"::"<<e}
 
       when /^(:[^:.]+)\.([^.]*)$/
 	# Symbol
@@ -129,20 +127,20 @@ module IRB
 	lv = eval("local_variables", bind)
 	cv = eval("self.class.constants", bind)
 
-	if (gv | lv | cv).include?(receiver.to_sym)
+	if (gv | lv | cv).include? receiver.to_sym
 	  # foo.func and foo is local var.
-	  candidates = eval("#{receiver}.methods", bind)
+	  candidates = eval "#{receiver}.methods", bind
 	elsif /^[A-Z]/ =~ receiver and /\./ !~ receiver
 	  # Foo::Bar.func
 	  begin
-	    candidates = eval("#{receiver}.methods", bind)
+	    candidates = eval "#{receiver}.methods", bind
 	  rescue Exception
 	    candidates = []
 	  end
 	else
 	  # func1.func2
 	  candidates = []
-	  ObjectSpace.each_object(Module){|m|
+	  ObjectSpace.each_object Module do |m|
 	    begin
 	      name = m.name
 	    rescue Exception
@@ -151,11 +149,10 @@ module IRB
 	    next if name != "IRB::Context" and
 	      /^(IRB|SLex|RubyLex|RubyToken)/ =~ name
 	    candidates.concat m.instance_methods(false)
-	  }
-	  candidates.sort!
-	  candidates.uniq!
+	  end
+          candidates.uniq!
 	end
-	select_message(receiver, message, candidates)
+	select_message receiver, message, candidates
 
       when /^\.([^.]*)$/
 	# unknown(maybe String)
@@ -178,10 +175,10 @@ module IRB
       candidates.map!(&:to_s).grep(/^#{message}/).map! do |e|
 	case e
 	when /^[a-zA-Z_]/
-	  receiver + "." + e
+	  receiver + ("."<<e)
 	when /^[0-9]/
 	when *Operators
-	  #receiver + " " + e
+	  #receiver + (" "<<e)
 	end
       end
     end
