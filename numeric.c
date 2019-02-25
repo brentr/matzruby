@@ -2301,6 +2301,7 @@ fix_divmod(x, y)
 
 static VALUE
 int_pow(x, y)
+//fix_num() takes care not to call with abs(x)<2
     long x;
     unsigned long y;
 {
@@ -2315,8 +2316,8 @@ int_pow(x, y)
     y &= ~1;
     do {
 	while (y % 2 == 0) {
-	    long x2 = x * x;
-	    if (x2/x != x || !POSFIXABLE(x2)) {
+	    long x2;
+	    if (x > SHRT_MAX || !POSFIXABLE(x2=x*x)) {
 		VALUE v;
 	      bignum:
 		v = rb_big_pow(rb_int2big(x), LONG2NUM(y));
@@ -2327,8 +2328,8 @@ int_pow(x, y)
 	    y >>= 1;
 	}
 	{
-	    long xz = x * z;
-	    if (!POSFIXABLE(xz) || xz / x != z) {
+	    long xz, zMax = LONG_MAX / x;
+	    if (z > zMax || !POSFIXABLE(xz=x*z)) {
 		goto bignum;
 	    }
 	    z = xz;
@@ -2370,7 +2371,7 @@ fix_pow(x, y)
 	if (a == -1) {
 	    if (b % 2 == 0)
 		return INT2FIX(1);
-	    else 
+	    else
 		return INT2FIX(-1);
 	}
 	if (b > 0) {
