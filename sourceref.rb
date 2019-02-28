@@ -1,5 +1,4 @@
-##################  sourceref.rb -- brent@mbari.org  #####################
-#
+#########  ruby/site_ruby/1.8/sourceref.rb -- brent@mbari.org  ##############
 #  The SourceRef class relies on a patched version of ruby/eval.c
 #  to provide access to the source file and line # where every Method
 #  or Proc is defined.  SourceRef is a container for these and implements
@@ -37,15 +36,13 @@
 #   String fn:nnn operates on file "fn" at line nnn
 #   no argument is equivalent to backtrace level 0
 #   Thread operates on that thread's most recent exception
-#
 ############################################################################
-
 
 class String
   def to_srcRef
   # parse a source reference from string of form fn:line#
     strip!
-    a = split(':')
+    a = split ':'
     return SourceRef.new(self, 0) if a.length < 2
     sym=nil
     if a.length > 2 and a[-1][0,3] == 'in '
@@ -59,7 +56,7 @@ class String
 end
 
 class Exception
-  def to_srcRef(levelOrMethod=0)
+  def to_srcRef levelOrMethod=0
   # default given any exception the best guess as to its location
     SourceRef.from_back_trace(backtrace, levelOrMethod)
   end
@@ -81,7 +78,7 @@ end
 
 class SourceRef   #combines source file name and line number
 
-  def initialize(file_name, line=nil, symbol=nil)
+  def initialize file_name, line=nil, symbol=nil
     raise ArgumentError, "missing source file reference" unless @file=file_name
     @line = line
     @symbol = symbol
@@ -98,7 +95,7 @@ class SourceRef   #combines source file name and line number
     self
   end
 
-  def list(lineCount=20, lineOffset=0)
+  def list lineCount=20, lineOffset=0
   # return the next lineCount lines of source text
   # or "" if no source is available
     text = ""; lineno=0
@@ -144,13 +141,19 @@ class SourceRef   #combines source file name and line number
   end
   private :sys
 
-  def edit(options=nil, readonly=false)
+  def edit options=nil, readonly=false
   # start an editor session on file at line
-  # If X-windows display available, try nedit client, then nedit directly
+  # If X-windows display available, try nedit client, then edit directly
     hasLine=line && line>1
     if disp=ENV["DISPLAY"]
       path = @@remote.remap(File.expand_path(file))
       if disp.length>1
+        cmd = "geany -m "
+        cmd << "-r " if readonly
+        cmd << "+#{line} " if hasLine
+        cmd << path.dump
+        cmd << ?&
+        return self if sys cmd
         args = "-lm Ruby "
         args<< "-read " if readonly
         args<< "-line #{line} " if hasLine
@@ -158,22 +161,23 @@ class SourceRef   #combines source file name and line number
         args.strip!
         svr="-noask -svrname #{ENV["USER"]}@#{`hostname`.strip}"
         return self if sys( <<-END
-NeditArgs=\'#{svr}\' Nedit #{args} \"#{path}\" || nedit #{args} \"#{path}\"
+NeditArgs=\'#{svr}\' Nedit #{args} \"#{path.dump}\" ||
+            nedit #{args} \"#{path.dump}\"
       	END
         )
       end
       return self if
         sys("TERM=#{ENV["TERM"]} nano -m #{"-v " if readonly}#{
-          "+#{line} " if hasLine}\"#{path}\"")
+          "+#{line} " if hasLine}\"#{path.dump}\"")
     end
   # if all else fails, fall back on the venerable local 'vi'
     system("vi #{"-R " if readonly}#{"-c"+line.to_s+" " if hasLine}\"#{file}\"")
     self
   end
 
-  def view (options=nil)
+  def view options=nil
   # start a read-only editor session on file at line
-    edit(options, true)
+    edit options, true
   end
 
   def reload
@@ -187,7 +191,7 @@ NeditArgs=\'#{svr}\' Nedit #{args} \"#{path}\" || nedit #{args} \"#{path}\"
   end
 
 
-  def self.find_in_back_trace (trace, symbol)
+  def self.find_in_back_trace trace, symbol
   # return first element in trace containing symbol
   # returns nil if no such stack level found
     for msg in trace
@@ -197,7 +201,7 @@ NeditArgs=\'#{svr}\' Nedit #{args} \"#{path}\" || nedit #{args} \"#{path}\"
     return nil
   end
 
-  def self.from_back_trace (trace, level=0)
+  def self.from_back_trace trace, level=0
   # return sourceref at level in backtace
   #  or return level if no such level found
     return find_in_back_trace(trace, level) if level.kind_of? Symbol
@@ -209,18 +213,18 @@ NeditArgs=\'#{svr}\' Nedit #{args} \"#{path}\" || nedit #{args} \"#{path}\"
   module Code #for objects supporting __file__ & __line__
 
     def source
-      SourceRef.new(__file__, __line__)
+      SourceRef.new __file__, __line__
     end
     alias_method :to_srcRef, :source
 
     # can't use define_method because in ruby 1.6 self would be SourceRef::Code
     (OPS = [ :list, :edit, :view, :reload ]).each {|m|
       eval "def #{m}(*args); source.#{m}(*args); end"
-    }
+    } unless defined? OPS
 
   end #module SourceRef::Code
 
-  def self.doMethod(m, *args)
+  def self.doMethod m, *args
     src = args.empty? ? $lastErr : args.shift
     #convert src to an appropriate SourceRef by whatever means possible
     #Modified irb.rb saves last back_trace & exception in IRB.conf
@@ -273,15 +277,13 @@ end #class SourceRef
 #mix source code manipulation utilites into the appropriate classes
 class Proc; include SourceRef::Code; end
 class Method; include SourceRef::Code; end
-if defined? UnboundMethod
-  class UnboundMethod; include SourceRef::Code; end
-end
+class UnboundMethod; include SourceRef::Code; end if defined? UnboundMethod
 class Object; include SourceRef::CommandBundle; end
 
 
 class Module
 
-  def sourceHash(methodType, methodNameArray)
+  def sourceHash methodType, methodNameArray
   # private method to build a hash of methodNames to sourceRefs
   # exclude methods for which no ruby source is available
     h = {}
@@ -299,12 +301,12 @@ class Module
   end
   private :sourceHash
 
-  def singleton_source(includeAll=false)
+  def singleton_source includeAll=false
   # return hash on receiver's singleton methods to corresponding SourceRefs
     sourceHash(:method, singleton_methods(includeAll))
   end
 
-  def instance_source(includeAncestors=false)
+  def instance_source includeAncestors=false
   # return hash on receiver's instance methods to corresponding SourceRefs
   #        optionally include accessible methods in ancestor classes
     sourceHash(:instance_method,
@@ -313,7 +315,7 @@ class Module
                 public_instance_methods(includeAncestors))
   end
 
-  def source(*args)
+  def source *args
   # return hash on receiver's methods to corresponding SourceRefs
   # note that instance_methods will overwrite singletons of the same name
     singleton_source(*args).update(instance_source(*args))
@@ -334,29 +336,29 @@ class Module
     method method_name
   end
 
-  def sources(*args)
+  def sources *args
   # return array of unique source file names for all receiver's methods
     (singleton_source.values+instance_source(*args).values).collect{|s|
        s.file
     }.uniq.collect{|fn| SourceRef.new(fn)}
   end
 
-  def reload(*args)
+  def reload *args
   # load all source files that define receiver's methods
     sources.each {|s| s.reload}
   end
 
-  def edit(*args)
+  def edit *args
   # start editor sessions on all files that define receiver's methods
     sources.each{|srcFile| srcFile.edit(*args)}
   end
 
-  def view(*args)
+  def view *args
   # start read-only editor sessions on files containing receiver's methods
     sources.each{|srcFile| srcFile.view(*args)}
   end
 
-  def list(*args)
+  def list *args
   # return first few lines of all files containing self.methods
     result=[]
     sources.each{|srcFile| result<<srcFile<<"\n"<<srcFile.list(*args)}
