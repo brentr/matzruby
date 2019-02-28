@@ -1,6 +1,6 @@
-####################  mbari.rb -- brent@mbari.org  #####################
+###########  ruby/site_ruby/1.8/mbari.rb -- brent@mbari.org  ###########
 #
-#  MBARI Generic (application-independent) utilites -- revised: 11/7/18
+#  MBARI Generic (application-independent) utilites -- revised: 2/27/19
 #
 ########################################################################
 
@@ -49,7 +49,7 @@ class Object
   end
 
   def deepCopy
-    Marshal::load(Marshal::dump(dup))
+    Marshal::load Marshal::dump dup
   end
 
   def reallyEqual? other  #for recursive equality tests (deprecated)
@@ -59,7 +59,7 @@ class Object
   def with hash
   #assign instance variables specified in given hash
     hash.each do |parameter, value|
-      send("#{parameter}=".to_sym, value)
+      __send__ "#{parameter}=".to_sym, value
     end
     self
   end
