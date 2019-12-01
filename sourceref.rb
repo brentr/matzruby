@@ -117,7 +117,7 @@ class SourceRef   #combines source file name and line number
 
   class <<@@remoteStub = Object.new
     def system localCmd
-      Kernel.system(localCmd)
+      Kernel.system("closeAll "<<localCmd)
     end
     def remap localPath
       localPath
