@@ -256,7 +256,7 @@ module XMLRPC
             # convert Ruby object into Hash
             ret = {"___class___" => param.class.name}
             param.instance_variables.each {|v| 
-              name = v[1..-1]
+              name = v.to_s[1..-1]
               val = param.instance_variable_get(v)
 
               if val.nil?

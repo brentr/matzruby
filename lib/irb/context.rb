@@ -234,7 +234,7 @@ module IRB
     alias __inspect__ inspect
     def inspect
       array = []
-      for ivar in instance_variables.sort{|e1, e2| e1 <=> e2}
+      for ivar in instance_variables.map{|v|v.to_s}.sort
 	name = ivar.sub(/^@(.*)$/){$1}
 	val = instance_eval(ivar)
 	case ivar

@@ -37,7 +37,7 @@ class Factory
   end
 
   def setiv2soap(node, obj, map)
-    if obj.class.class_variables.include?('@@schema_element')
+    if obj.class.class_variables.include?(:@@schema_element)
       obj.class.class_eval('@@schema_element').each do |name, info|
         type, qname = info
         if qname
@@ -51,7 +51,7 @@ class Factory
     else
       # should we sort instance_variables?
       obj.instance_variables.each do |var|
-        name = var.sub(/^@/, '')
+        name = var.to_s.sub(/^@/, '')
         elename = Mapping.name2elename(name)
         node.add(elename,
           Mapping._obj2soap(obj.instance_variable_get(var), map))

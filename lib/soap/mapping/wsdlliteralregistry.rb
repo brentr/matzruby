@@ -148,7 +148,7 @@ private
   def any2soap(obj, qname)
     if obj.is_a?(SOAPElement)
       obj
-    elsif obj.class.class_variables.include?('@@schema_element')
+    elsif obj.class.class_variables.include?(:@@schema_element)
       stubobj2soap(obj, qname)
     elsif obj.is_a?(SOAP::Mapping::Object)
       mappingobj2soap(obj, qname)
@@ -178,7 +178,7 @@ private
   def stubobj2soap(obj, qname)
     ele = SOAPElement.new(qname)
     ele.qualified =
-      (obj.class.class_variables.include?('@@schema_qualified') and
+      (obj.class.class_variables.include?(:@@schema_qualified) and
       obj.class.class_eval('@@schema_qualified'))
     add_elements2soap(obj, ele)
     add_attributes2soap(obj, ele)
@@ -260,7 +260,7 @@ private
       typestr = XSD::CodeGen::GenSupport.safeconstname(node.elename.name)
       obj_class = Mapping.class_from_name(typestr)
     end
-    if obj_class and obj_class.class_variables.include?('@@schema_element')
+    if obj_class and obj_class.class_variables.include?(:@@schema_element)
       soapele2stubobj(node, obj_class)
     elsif node.is_a?(SOAPElement) or node.is_a?(SOAPStruct)
         # SOAPArray for literal?

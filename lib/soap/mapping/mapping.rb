@@ -251,11 +251,11 @@ module Mapping
   def self.obj2element(obj)
     name = namespace = nil
     ivars = obj.instance_variables
-    if ivars.include?('@schema_type')
-      name = obj.instance_variable_get('@schema_type')
+    if ivars.include?(:@schema_type)
+      name = obj.instance_variable_get(:@schema_type)
     end
-    if ivars.include?('@schema_ns')
-      namespace = obj.instance_variable_get('@schema_ns')
+    if ivars.include?(:@schema_ns)
+      namespace = obj.instance_variable_get(:@schema_ns)
     end
     if !name or !namespace
       class2qname(obj.class)
@@ -276,7 +276,7 @@ module Mapping
       obj[attr_name] || obj[attr_name.intern]
     else
       name = XSD::CodeGen::GenSupport.safevarname(attr_name)
-      if obj.instance_variables.include?('@' + name)
+      if obj.instance_variables.include? ('@' + name).intern
         obj.instance_variable_get('@' + name)
       elsif ((obj.is_a?(::Struct) or obj.is_a?(Marshallable)) and
           obj.respond_to?(name))
@@ -348,7 +348,7 @@ module Mapping
 
     def class_schema_variable(sym, klass)
       var = "@@#{sym}"
-      klass.class_variables.include?(var) ? klass.class_eval(var) : nil
+      klass.class_variables.include?(var.intern) ? klass.class_eval(var) : nil
     end
 
     def protect_threadvars(*symbols)

@@ -5,7 +5,7 @@
 #   	$Date: 2008/06/10 22:01:32 $
 #   	by Keiju ISHITSUKA(keiju@ishitsuka.com)
 #
-# -- brent@mbari.org 9/15/16
+# -- brent@mbari.org 3/27/20
 #
 #
 require "e2mmap"
@@ -148,7 +148,7 @@ module IRB
 	  if l = @context.io.gets
 	    print l if @context.verbose?
 	  else
-	    if @context.ignore_eof? and @context.io.readable_atfer_eof?
+	    if @context.ignore_eof? and @context.io.readable_after_eof?
 	      l = "\n"
 	      if @context.verbose?
 		printf "Use \"exit\" to leave %s\n", @context.ap_name
@@ -322,9 +322,9 @@ module IRB
       ary = []
       for iv in instance_variables
 	case iv
-	when "@signal_status"
+	when :@signal_status
 	  ary.push format("%s=:%s", iv, @signal_status.id2name)
-	when "@context"
+	when :@context
 	  ary.push format("%s=%s", iv, eval(iv).__to_s__)
 	else
 	  ary.push format("%s=%s", iv, eval(iv))

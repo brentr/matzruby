@@ -32,7 +32,7 @@ module IRB
     end
     public :gets
 
-    def readable_atfer_eof?
+    def readable_after_eof?
       false
     end
   end
@@ -53,7 +53,7 @@ module IRB
       $stdin.eof?
     end
 
-    def readable_atfer_eof?
+    def readable_after_eof?
       true
     end
 
@@ -107,7 +107,7 @@ module IRB
 	@eof
       end
 
-      def readable_atfer_eof?
+      def readable_after_eof?
 	true
       end
 

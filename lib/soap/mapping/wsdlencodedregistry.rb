@@ -216,7 +216,7 @@ private
       typestr = XSD::CodeGen::GenSupport.safeconstname(node.elename.name)
       obj_class = Mapping.class_from_name(typestr)
     end
-    if obj_class and obj_class.class_variables.include?('@@schema_element')
+    if obj_class and obj_class.class_variables.include?(:@@schema_element)
       soap2stubobj(node, obj_class)
     else
       Mapping._soap2obj(node, Mapping::DefaultRegistry, obj_class)

@@ -123,14 +123,14 @@ class Delegator
   #
   def initialize(obj)
     preserved = ::Kernel.public_instance_methods(false)
-    preserved -= ["to_s","to_a","inspect","==","=~","==="]
+    preserved -= [:to_s,:to_a,:inspect,:==,:=~,:===]
     for t in self.class.ancestors
       preserved |= t.public_instance_methods(false)
       preserved |= t.private_instance_methods(false)
       preserved |= t.protected_instance_methods(false)
       break if t == Delegator
     end
-    preserved << "singleton_method_added"
+    preserved << :singleton_method_added
     for method in obj.methods
       next if preserved.include? method
       begin
@@ -259,7 +259,7 @@ def DelegateClass(superclass)
   klass = Class.new
   methods = superclass.public_instance_methods(true)
   methods -= ::Kernel.public_instance_methods(false)
-  methods |= ["to_s","to_a","inspect","==","=~","==="]
+  methods |= [:to_s,:to_a,:inspect,:==,:=~,:===]
   klass.module_eval {
     def initialize(obj)  # :nodoc:
       @_dc_obj = obj
