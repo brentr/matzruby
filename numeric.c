@@ -2157,28 +2157,22 @@ fix_mul(x, y)
     VALUE x, y;
 {
     if (FIXNUM_P(y)) {
-#ifdef __HP_cc
-        /* avoids an optimization bug of HP aC++/ANSI C B3910B A.06.05 [Jul 25 2005] */
-        volatile
-#endif
-	long a, b, c;
+	long a, b;
+	volatile long c;  //prevent compiler from optimizing out overflow checks
 	VALUE r;
 
 	a = FIX2LONG(x);
 	if (a == 0) return x;
 
 	b = FIX2LONG(y);
-	c = a * b;
-	r = LONG2FIX(c);
+	r = LONG2FIX(c = a * b);
 
-	if (FIX2LONG(r) != c || c/a != b) {
+	if (FIX2LONG(r) != c || c/a != b)
 	    r = rb_big_mul(rb_int2big(a), rb_int2big(b));
-	}
 	return r;
     }
-    if (TYPE(y) == T_FLOAT) {
+    if (TYPE(y) == T_FLOAT)
 	return rb_float_new((double)FIX2LONG(x) * RFLOAT(y)->value);
-    }
     return rb_num_coerce_bin(x, y);
 }
 
