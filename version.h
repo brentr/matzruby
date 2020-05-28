@@ -3,16 +3,26 @@
 //(for improved efficiency and compatibility with Ruby 1.9 and newer)
 
 #define RUBY_VERSION "1.8.9"
+<<<<<<< HEAD
 #define RUBY_RELEASE_DATE "2020-3-27"
 #define RUBY_VERSION_CODE 187
 #define RUBY_RELEASE_CODE 20200327
+=======
+#define RUBY_RELEASE_DATE "2020-5-27"
+#define RUBY_VERSION_CODE 189
+#define RUBY_RELEASE_CODE 20200527
+>>>>>>> 99e4c8685958886286b2ac5c10f48f8f285ca97d
 #define RUBY_PATCHLEVEL 352
 
 #define RUBY_VERSION_MAJOR 1
 #define RUBY_VERSION_MINOR 8
 #define RUBY_VERSION_TEENY 9
 #define RUBY_RELEASE_YEAR 2020
+<<<<<<< HEAD
 #define RUBY_RELEASE_MONTH 3
+=======
+#define RUBY_RELEASE_MONTH 5
+>>>>>>> 99e4c8685958886286b2ac5c10f48f8f285ca97d
 #define RUBY_RELEASE_DAY 27
 
 #ifdef RUBY_EXTERN

@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ESP MBARI Ruby build for workstation -- 11/8/18 brent@mbari.org
+# configure ESP MBARI Ruby build for workstation -- 5/27/20 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
@@ -10,8 +10,8 @@ for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
 export CC CFLAGS CXXFLAGS
-rm -f ext/readline/libreadline.so*
 [ `which dpkg-architecture` ] && {
+  rm -f ext/readline/libreadline.so*
   lib="/lib/`dpkg-architecture -qDEB_HOST_MULTIARCH`"
     #link Ruby readline extension with libreadline.5
   [ "$readline5" ] || readline5=$lib/libreadline.so.5
