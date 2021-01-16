@@ -1,9 +1,11 @@
 #!/bin/bash
-# configure ruby mbariRuby build for arm-linux -- 11/8/18 brent@mbari.org
+# configure ruby mbariRuby build for arm-linux -- 1/15/21 brent@mbari.org
 # for gcc x86 add:
 # -fno-stack-protector
 # to CFLAGS
 : ${CFLAGS:="-O2 -g"}
+: ${rubyCC:=gcc}
+: ${rubyCFLAGS:="-Os -g"}
 : ${CXXFLAGS:=$CFLAGS}
 : ${ARMGCC:=/arm}
 : ${ARMPREFIX:=$ARMGCC/usr}
@@ -19,7 +21,7 @@ autoconf || exit $?
 if [ ! -x miniruby ]; then
   configure --enable-mbari-api &&
   echo Building miniruby for this host
-  rm -f *.o && make -j4 CC=gcc miniruby || {
+  rm -f *.o && make -j4 CC=$rubyCC CFLAGS="$rubyCFLAGS" miniruby || {
     echo "could not build miniruby"
     exit 8
   }
@@ -29,6 +31,7 @@ echo Reconfiguring RUBY build for $ARMHOST
 export CC
 rb_cv_stack_grow_dir=-1 ac_cv_func_memcmp_working=yes \
 ac_cv_func_getpgrp_void=yes ac_cv_func_setpgrp_void=yes \
+rb_cv_need_io_seek_between_rw=no \
 LDFLAGS=-L${ARMPREFIX}/lib \
 CPPFLAGS=-I${ARMPREFIX}/include \
 RPATHFLAG=" -Wl,-R$TARGETTOP/lib" \

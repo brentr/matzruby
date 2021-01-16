@@ -1,9 +1,11 @@
 #!/bin/bash
-# configure ESP MBARI Ruby build for workstation -- 5/27/20 brent@mbari.org
+# configure ESP MBARI Ruby build for workstation -- 1/15/21 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
 # also note that gcc >=4.7 requires -fno-tree-dce
+# gcc-10 produces broken binaries at -O2 or higher (use CC=gcc-9 espconfig)
+: ${CC:=gcc}
 : ${CFLAGS:="-O2 -g -Wclobbered -fno-tree-dce -fno-stack-protector"}
 : ${CXXFLAGS:=$CFLAGS}
 for mod in mbarilib termios .; do

@@ -39,6 +39,7 @@ header_patterns=*.h;*.H;*.hpp;*.hxx;*.h++;*.hh;
 ignored_dirs_patterns=.*;
 ignored_file_patterns=*.o;*.obj;*.a;*.lib;*.so;*.png;*.eps;*.py;*.pdf;*.svg;*.zip;*.7z*;*.tar*;.*;*.dll;*.lo;*.la;*.class;*.jar;*.pyc;*.mo;*.gmo;
 generate_tag_prefs=1
+external_dirs=
 
 [build-menu]
 NF_00_LB=_Make
