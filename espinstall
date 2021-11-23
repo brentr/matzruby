@@ -1,5 +1,5 @@
 #!/bin/sh
-# install ESP ruby 1.8.7p352 build for workstation -- 5/8/17 brent@mbari.org
+# install ESP ruby 1.8.9p352 build for workstation -- 11/22/21 brent@mbari.org
 # also install modules needed for ESP unless
 #   coreOnly environment variable is set
 #
