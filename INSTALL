@@ -1,0 +1,16 @@
+Installation from source hints
+
+Required Debian packages:
+autoconf
+bison
+zlib1g-dev
+libncurses-dev
+
+libreadline-5 must be installed from source or an older Debian package
+
+Once these all all installed:
+
+espinstall
+
+will install ESP Ruby under /opt/mbari
+Add /opt/mbari/bin to your $PATH
