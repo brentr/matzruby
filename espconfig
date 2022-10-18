@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ESP MBARI Ruby build for workstation -- 11/22/21 brent@mbari.org
+# configure ESP MBARI Ruby build for workstation -- 10/17/22 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
@@ -8,6 +8,10 @@
 # otherwise produces broken binaries at -O2 or higher 
 # Use:
 #   espconfig CC=gcc-9  #unless STACK_WIPE_SITES is redefined in rubysig.h
+#
+# Requires zlib1g-dev package
+# Requires obsolete libreadline.so.5 & /usr/include/readline
+#   (typically built from source)
 #
 : ${CC:=gcc}
 : ${CFLAGS:="-O2 -g -Wclobbered -fno-tree-dce -fno-stack-protector"}
