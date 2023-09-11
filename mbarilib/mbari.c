@@ -138,6 +138,24 @@ static char *checkIndex(VALUE s, VALUE idx, size_t len)
     return RSTRING(s)->ptr+i;
 }
 
+/* return unsigned integer representation of 1 byte string
+*/
+static VALUE asCardinal1(VALUE s, VALUE idx)
+{
+    char *byte = checkIndex(s,idx,1);
+    long r = byte[0];
+    return LONG2FIX(r);
+}
+
+/* return signed integer representation of 1 byte string
+*/
+static VALUE asInteger1(VALUE s, VALUE idx)
+{
+    char *byte = checkIndex(s,idx,1);
+    long r = (signed char)byte[0];
+    return LONG2FIX(r);
+}
+
 /* return unsigned integer representation of 2 byte string
 *  most significant byte first
 */
@@ -154,6 +172,25 @@ static VALUE asInteger2(VALUE s, VALUE idx)
 {
     char *byte = checkIndex(s,idx,2);
     long r = ((signed char)(byte[0])<<8) | byte[1];
+    return LONG2FIX(r);
+}
+
+/* return unsigned integer representation of 3 byte string
+*  most significant byte first
+*/
+static VALUE asCardinal3(VALUE s, VALUE idx)
+{
+    char *byte = checkIndex(s,idx,3);
+    return LONG2FIX(byte[0]<<8 | byte[1] | byte[2]<<8);
+}
+
+/* return signed integer representation of 3 byte string
+*  most significant byte first
+*/
+static VALUE asInteger3(VALUE s, VALUE idx)
+{
+    char *byte = checkIndex(s,idx,3);
+    long r = ((signed char)(byte[0])<<8) | byte[1] | byte[2]<<8;
     return LONG2FIX(r);
 }
 
@@ -177,6 +214,130 @@ static VALUE asInteger4(VALUE s, VALUE idx)
 }
 
 
+static char *growIndex(VALUE s, VALUE idx, size_t len)
+{
+    long i = NUM2LONG(idx);
+    if (TYPE(s) != T_STRING)
+        rb_raise(rb_eTypeError, "1st arg must be String");
+    if (i < 0)
+        i += RSTRING(s)->len;
+    if (i < 0)
+        rb_raise(rb_eRangeError, "index before start of String");
+    if (i+len > RSTRING(s)->len)
+        rb_str_resize(s, i+len);
+    else
+        rb_str_modify(s);
+    return RSTRING(s)->ptr+i;
+}
+
+/* return s modified such that s[idx,1] contains unsigned byte u
+*/
+static VALUE asUnsigned1(VALUE u, VALUE s, VALUE idx)
+{
+    unsigned long ul = NUM2ULONG(u);
+    if (ul <= 0xff) {
+      *growIndex(s,idx,1) = ul;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "%lu cannot be represented as unsigned byte", ul);
+}
+
+/* return s modified such that s[idx,1] contains signed byte i
+*/
+static VALUE asSigned1(VALUE i, VALUE s, VALUE idx)
+{
+    unsigned long l = NUM2LONG(i);
+    if (l+0x80 <= 0xff) {
+      *growIndex(s,idx,1) = l;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "%ld cannot be represented as signed byte", l);
+}
+
+/* return s modified such that s[idx,2] contains unsigned short word u
+*  most significant byte first
+*/
+static VALUE asUnsigned2(VALUE u, VALUE s, VALUE idx)
+{
+    unsigned long ul = NUM2ULONG(u);
+    if (ul <= 0xffff) {
+      char *byte = growIndex(s,idx,2);
+      byte[0]=ul>>8; byte[1]=ul;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 16 bits", ul);
+}
+
+/* return s modified such that s[idx,2] contains signed short word i
+*  most significant byte first
+*/
+static VALUE asSigned2(VALUE i, VALUE s, VALUE idx)
+{
+    unsigned long l = NUM2LONG(i);
+    if (l+0x8000 <= 0xffff) {
+      char *byte = growIndex(s,idx,2);
+      byte[0]=l>>8; byte[1]=l;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "signed %ld will not fit in 16 bits", l);
+}
+
+/* return s modified such that s[idx,3] contains unsigned 3-bytes u
+*  most significant byte first
+*/
+static VALUE asUnsigned3(VALUE u, VALUE s, VALUE idx)
+{
+    unsigned long ul = NUM2ULONG(u);
+    if (ul <= 0xffffff) {
+      char *byte = growIndex(s,idx,3);
+      byte[2]=ul; byte[1]=ul>>8; byte[0]=ul>>16;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 24 bits", ul);
+}
+
+/* return s modified such that s[idx,3] contains signed 3-bytes u
+*  most significant byte first
+*/
+static VALUE asSigned3(VALUE i, VALUE s, VALUE idx)
+{
+    unsigned long l = NUM2LONG(i);
+    if (l+0x800000 <= 0xffffff) {
+      char *byte = growIndex(s,idx,3);
+      byte[2]=l; byte[1]=l>>8; byte[0]=l>>16;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "signed %ld will not fit in 24 bits", l);
+}
+
+/* return s modified such that s[idx,4] contains unsigned word u
+*  most significant byte first
+*/
+static VALUE asUnsigned4(VALUE u, VALUE s, VALUE idx)
+{
+    unsigned long ul = NUM2ULONG(u);
+    if (ul <= 0xffffffff) {
+      char *byte = growIndex(s,idx,4);
+      byte[3]=ul; byte[2]=ul>>8; byte[1]=ul>>16; byte[0]=ul>>24;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 32 bits", ul);
+}
+
+/* return s modified such that s[idx,4] contains signed word i
+*  most significant byte first
+*/
+static VALUE asSigned4(VALUE i, VALUE s, VALUE idx)
+{
+    unsigned long l = NUM2LONG(i);
+    if (l+0x80000000 <= 0xffffffff) {
+      char *byte = growIndex(s,idx,4);
+      byte[3]=l; byte[2]=l>>8; byte[1]=l>>16; byte[0]=l>>24;
+      return s;
+    }
+    rb_raise(rb_eRangeError, "signed %ld will not fit in 32 bits", l);
+}
+
 void
 Init_mbarilib()
 {
@@ -187,9 +348,23 @@ Init_mbarilib()
     rb_define_method(rb_mPort, "getc", getcPort, 0);
     rb_define_method(rb_mPort, "getBlock", getBlockPort, -1);
 
+    rb_define_method(rb_cString, "asCardinal1", asCardinal1, 1);
     rb_define_method(rb_cString, "asCardinal2", asCardinal2, 1);
+    rb_define_method(rb_cString, "asCardinal3", asCardinal3, 1);
     rb_define_method(rb_cString, "asCardinal4", asCardinal4, 1);
+    rb_define_method(rb_cString, "asInteger1", asInteger1, 1);
     rb_define_method(rb_cString, "asInteger2", asInteger2, 1);
+    rb_define_method(rb_cString, "asInteger3", asInteger3, 1);
     rb_define_method(rb_cString, "asInteger4", asInteger4, 1);
+
+    rb_define_method(rb_cInteger, "asUnsigned1", asUnsigned1, 2);
+    rb_define_method(rb_cInteger, "asSigned1", asSigned1, 2);
+    rb_define_method(rb_cInteger, "asUnsigned2", asUnsigned2, 2);
+    rb_define_method(rb_cInteger, "asSigned2", asSigned2, 2);
+    rb_define_method(rb_cInteger, "asUnsigned3", asUnsigned3, 2);
+    rb_define_method(rb_cInteger, "asSigned3", asSigned3, 2);
+    rb_define_method(rb_cInteger, "asUnsigned4", asUnsigned4, 2);
+    rb_define_method(rb_cInteger, "asSigned4", asSigned4, 2);
+
 }
 
