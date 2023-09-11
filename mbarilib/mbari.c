@@ -80,6 +80,13 @@ static ID framingError;
 #define zero INT2FIX(0)
 #define ff INT2FIX(0xff)
 
+static unsigned long num2ulong(VALUE u)
+{
+    unsigned long result = NUM2ULONG(u);
+    if (rb_funcall(u, '<', 1, INT2FIX(0)))
+        rb_raise(rb_eRangeError, "unsigned value %ld < 0", result);
+    return result;
+}
 
 static VALUE
 getcPort(io)
@@ -108,7 +115,7 @@ getBlockPort(argc, argv, io)
     char *cursor, *end;
     size_t count;
     int args = rb_scan_args(argc, argv, "11", &len, &result);
-    count = NUM2ULONG(len);
+    count = num2ulong(len);
     if (args > 1) {
         size_t prefixLen;
         if (TYPE(result) != T_STRING)
@@ -230,16 +237,28 @@ static char *growIndex(VALUE s, VALUE idx, size_t len)
     return RSTRING(s)->ptr+i;
 }
 
+static void unsignedOutOfRange(unsigned bits, unsigned long val)
+{
+    rb_raise(rb_eRangeError,
+        "%lu won't fit in unsigned %u bit field", val, bits);
+}
+
+static void signedOutOfRange(unsigned bits, unsigned long val)
+{
+    rb_raise(rb_eRangeError,
+        "%ld won't fit in signed %u bit field", (long)val, bits);
+}
+
 /* return s modified such that s[idx,1] contains unsigned byte u
 */
 static VALUE asUnsigned1(VALUE u, VALUE s, VALUE idx)
 {
-    unsigned long ul = NUM2ULONG(u);
+    unsigned long ul = num2ulong(u);
     if (ul <= 0xff) {
       *growIndex(s,idx,1) = ul;
       return s;
     }
-    rb_raise(rb_eRangeError, "%lu cannot be represented as unsigned byte", ul);
+    unsignedOutOfRange(8, ul);
 }
 
 /* return s modified such that s[idx,1] contains signed byte i
@@ -251,7 +270,7 @@ static VALUE asSigned1(VALUE i, VALUE s, VALUE idx)
       *growIndex(s,idx,1) = l;
       return s;
     }
-    rb_raise(rb_eRangeError, "%ld cannot be represented as signed byte", l);
+    signedOutOfRange(8, l);
 }
 
 /* return s modified such that s[idx,2] contains unsigned short word u
@@ -259,13 +278,13 @@ static VALUE asSigned1(VALUE i, VALUE s, VALUE idx)
 */
 static VALUE asUnsigned2(VALUE u, VALUE s, VALUE idx)
 {
-    unsigned long ul = NUM2ULONG(u);
+    unsigned long ul = num2ulong(u);
     if (ul <= 0xffff) {
       char *byte = growIndex(s,idx,2);
       byte[0]=ul>>8; byte[1]=ul;
       return s;
     }
-    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 16 bits", ul);
+    unsignedOutOfRange(16, ul);
 }
 
 /* return s modified such that s[idx,2] contains signed short word i
@@ -279,21 +298,21 @@ static VALUE asSigned2(VALUE i, VALUE s, VALUE idx)
       byte[0]=l>>8; byte[1]=l;
       return s;
     }
-    rb_raise(rb_eRangeError, "signed %ld will not fit in 16 bits", l);
-}
+    signedOutOfRange(16, l);
+ }
 
 /* return s modified such that s[idx,3] contains unsigned 3-bytes u
 *  most significant byte first
 */
 static VALUE asUnsigned3(VALUE u, VALUE s, VALUE idx)
 {
-    unsigned long ul = NUM2ULONG(u);
+    unsigned long ul = num2ulong(u);
     if (ul <= 0xffffff) {
       char *byte = growIndex(s,idx,3);
       byte[2]=ul; byte[1]=ul>>8; byte[0]=ul>>16;
       return s;
     }
-    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 24 bits", ul);
+    unsignedOutOfRange(24, ul);
 }
 
 /* return s modified such that s[idx,3] contains signed 3-bytes u
@@ -307,7 +326,7 @@ static VALUE asSigned3(VALUE i, VALUE s, VALUE idx)
       byte[2]=l; byte[1]=l>>8; byte[0]=l>>16;
       return s;
     }
-    rb_raise(rb_eRangeError, "signed %ld will not fit in 24 bits", l);
+    signedOutOfRange(24, l);
 }
 
 /* return s modified such that s[idx,4] contains unsigned word u
@@ -315,13 +334,13 @@ static VALUE asSigned3(VALUE i, VALUE s, VALUE idx)
 */
 static VALUE asUnsigned4(VALUE u, VALUE s, VALUE idx)
 {
-    unsigned long ul = NUM2ULONG(u);
+    unsigned long ul = num2ulong(u);
     if (ul <= 0xffffffff) {
       char *byte = growIndex(s,idx,4);
       byte[3]=ul; byte[2]=ul>>8; byte[1]=ul>>16; byte[0]=ul>>24;
       return s;
     }
-    rb_raise(rb_eRangeError, "unsigned %lu will not fit in 32 bits", ul);
+    unsignedOutOfRange(32, ul);
 }
 
 /* return s modified such that s[idx,4] contains signed word i
@@ -335,7 +354,7 @@ static VALUE asSigned4(VALUE i, VALUE s, VALUE idx)
       byte[3]=l; byte[2]=l>>8; byte[1]=l>>16; byte[0]=l>>24;
       return s;
     }
-    rb_raise(rb_eRangeError, "signed %ld will not fit in 32 bits", l);
+    signedOutOfRange(32, l);
 }
 
 void
