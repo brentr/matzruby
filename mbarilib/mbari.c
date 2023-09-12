@@ -6,6 +6,9 @@
   Copyright (C) 2000  Network Applied Communication Laboratory, Inc.
   Copyright (C) 2000  Information-technology Promotion Agency, Japan
 
+  Revised:  9/11/23 brent@mbari.org
+    added optimized network byte order conversions
+
   Revised:  9/5/23 brent@mbari.org
     added GatewayPort module
 
@@ -135,7 +138,7 @@ getBlockPort(argc, argv, io)
 }
 
 
-static char *checkIndex(VALUE s, VALUE idx, size_t len)
+static unsigned char *checkIndex(VALUE s, VALUE idx, size_t len)
 {
     long i = NUM2LONG(idx);
     if (i < 0)
@@ -149,18 +152,16 @@ static char *checkIndex(VALUE s, VALUE idx, size_t len)
 */
 static VALUE asCardinal1(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,1);
-    long r = byte[0];
-    return LONG2FIX(r);
+    unsigned char *byte = checkIndex(s,idx,1);
+    return ULONG2NUM(byte[0]);
 }
 
 /* return signed integer representation of 1 byte string
 */
 static VALUE asInteger1(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,1);
-    long r = (signed char)byte[0];
-    return LONG2FIX(r);
+    unsigned char *byte = checkIndex(s,idx,1);
+    return LONG2FIX((signed char)byte[0]);
 }
 
 /* return unsigned integer representation of 2 byte string
@@ -168,8 +169,8 @@ static VALUE asInteger1(VALUE s, VALUE idx)
 */
 static VALUE asCardinal2(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,2);
-    return LONG2FIX(byte[0]<<8 | byte[1]);
+    unsigned char *byte = checkIndex(s,idx,2);
+    return ULONG2NUM(byte[0]<<8 | byte[1]);
 }
 
 /* return signed integer representation of 2 byte string
@@ -177,9 +178,8 @@ static VALUE asCardinal2(VALUE s, VALUE idx)
 */
 static VALUE asInteger2(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,2);
-    long r = ((signed char)(byte[0])<<8) | byte[1];
-    return LONG2FIX(r);
+    unsigned char *byte = checkIndex(s,idx,2);
+    return LONG2FIX(((signed char)(byte[0])<<8) | byte[1]);
 }
 
 /* return unsigned integer representation of 3 byte string
@@ -187,8 +187,8 @@ static VALUE asInteger2(VALUE s, VALUE idx)
 */
 static VALUE asCardinal3(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,3);
-    return LONG2FIX(byte[0]<<8 | byte[1] | byte[2]<<8);
+    unsigned char *byte = checkIndex(s,idx,3);
+    return ULONG2NUM(byte[0]<<16 | byte[1]<<8 | byte[2]);
 }
 
 /* return signed integer representation of 3 byte string
@@ -196,9 +196,8 @@ static VALUE asCardinal3(VALUE s, VALUE idx)
 */
 static VALUE asInteger3(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,3);
-    long r = ((signed char)(byte[0])<<8) | byte[1] | byte[2]<<8;
-    return LONG2FIX(r);
+    unsigned char *byte = checkIndex(s,idx,3);
+    return LONG2FIX(((signed char)(byte[0])<<16) | byte[1]<<8 | byte[2]);
 }
 
 /* return unsigned integer representation of 4 byte string
@@ -206,7 +205,7 @@ static VALUE asInteger3(VALUE s, VALUE idx)
 */
 static VALUE asCardinal4(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,4);
+    unsigned char *byte = checkIndex(s,idx,4);
     return ULONG2NUM(byte[0]<<24 | byte[1]<<16 | byte[2]<<8 | byte[3] );
 }
 
@@ -215,13 +214,13 @@ static VALUE asCardinal4(VALUE s, VALUE idx)
 */
 static VALUE asInteger4(VALUE s, VALUE idx)
 {
-    char *byte = checkIndex(s,idx,4);
+    unsigned char *byte = checkIndex(s,idx,4);
     return LONG2NUM(((signed char)(byte[0])<<24) |
                         byte[1]<<16 | byte[2]<<8 | byte[3] );
 }
 
 
-static char *growIndex(VALUE s, VALUE idx, size_t len)
+static unsigned char *growIndex(VALUE s, VALUE idx, size_t len)
 {
     long i = NUM2LONG(idx);
     if (TYPE(s) != T_STRING)
@@ -280,7 +279,7 @@ static VALUE asUnsigned2(VALUE u, VALUE s, VALUE idx)
 {
     unsigned long ul = num2ulong(u);
     if (ul <= 0xffff) {
-      char *byte = growIndex(s,idx,2);
+      unsigned char *byte = growIndex(s,idx,2);
       byte[0]=ul>>8; byte[1]=ul;
       return s;
     }
@@ -294,7 +293,7 @@ static VALUE asSigned2(VALUE i, VALUE s, VALUE idx)
 {
     unsigned long l = NUM2LONG(i);
     if (l+0x8000 <= 0xffff) {
-      char *byte = growIndex(s,idx,2);
+      unsigned char *byte = growIndex(s,idx,2);
       byte[0]=l>>8; byte[1]=l;
       return s;
     }
@@ -308,7 +307,7 @@ static VALUE asUnsigned3(VALUE u, VALUE s, VALUE idx)
 {
     unsigned long ul = num2ulong(u);
     if (ul <= 0xffffff) {
-      char *byte = growIndex(s,idx,3);
+      unsigned char *byte = growIndex(s,idx,3);
       byte[2]=ul; byte[1]=ul>>8; byte[0]=ul>>16;
       return s;
     }
@@ -322,7 +321,7 @@ static VALUE asSigned3(VALUE i, VALUE s, VALUE idx)
 {
     unsigned long l = NUM2LONG(i);
     if (l+0x800000 <= 0xffffff) {
-      char *byte = growIndex(s,idx,3);
+      unsigned char *byte = growIndex(s,idx,3);
       byte[2]=l; byte[1]=l>>8; byte[0]=l>>16;
       return s;
     }
@@ -336,7 +335,7 @@ static VALUE asUnsigned4(VALUE u, VALUE s, VALUE idx)
 {
     unsigned long ul = num2ulong(u);
     if (ul <= 0xffffffff) {
-      char *byte = growIndex(s,idx,4);
+      unsigned char *byte = growIndex(s,idx,4);
       byte[3]=ul; byte[2]=ul>>8; byte[1]=ul>>16; byte[0]=ul>>24;
       return s;
     }
@@ -350,7 +349,7 @@ static VALUE asSigned4(VALUE i, VALUE s, VALUE idx)
 {
     unsigned long l = NUM2LONG(i);
     if (l+0x80000000 <= 0xffffffff) {
-      char *byte = growIndex(s,idx,4);
+      unsigned char *byte = growIndex(s,idx,4);
       byte[3]=l; byte[2]=l>>8; byte[1]=l>>16; byte[0]=l>>24;
       return s;
     }
@@ -377,13 +376,12 @@ Init_mbarilib()
     rb_define_method(rb_cString, "asInteger4", asInteger4, 1);
 
     rb_define_method(rb_cInteger, "asUnsigned1", asUnsigned1, 2);
-    rb_define_method(rb_cInteger, "asSigned1", asSigned1, 2);
     rb_define_method(rb_cInteger, "asUnsigned2", asUnsigned2, 2);
-    rb_define_method(rb_cInteger, "asSigned2", asSigned2, 2);
     rb_define_method(rb_cInteger, "asUnsigned3", asUnsigned3, 2);
-    rb_define_method(rb_cInteger, "asSigned3", asSigned3, 2);
     rb_define_method(rb_cInteger, "asUnsigned4", asUnsigned4, 2);
+    rb_define_method(rb_cInteger, "asSigned1", asSigned1, 2);
+    rb_define_method(rb_cInteger, "asSigned2", asSigned2, 2);
+    rb_define_method(rb_cInteger, "asSigned3", asSigned3, 2);
     rb_define_method(rb_cInteger, "asSigned4", asSigned4, 2);
-
-}
+ }
 
