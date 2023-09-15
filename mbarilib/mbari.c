@@ -139,15 +139,14 @@ getBlockPort(argc, argv, io)
 
 static VALUE escape(VALUE str, VALUE specials)
 /*
- * In str, prefix each occurance of any character in specials with a backslash
+ * In str, prefix each occurence of any character in specials with a its 1st
  * If str is unchanged, returns str, else returns a new String
  */
 {
   char *s = RSTRING(str)->ptr;
   char *send = s + RSTRING(str)->len;
   StringValue(specials);
-
-  for (; s < send; s++) {
+  if (RSTRING(specials)->len) for (; s < send; s++) {
     if (memchr(RSTRING(specials)->ptr, *s, RSTRING(specials)->len)) {
       size_t unEscLen = s - RSTRING(str)->ptr;
       VALUE tmp = rb_str_new(0, RSTRING(str)->len*2 - unEscLen);
@@ -155,11 +154,13 @@ static VALUE escape(VALUE str, VALUE specials)
       /* copy upto metacharacter */
       memcpy(t, RSTRING(str)->ptr, unEscLen);
       t += unEscLen;
+      *t++ = RSTRING(specials)->ptr[0];  //insert 1st escape char
+      *t++ = *s++;
 
       for (; s < send; s++) {
         int c = *s;
 	    if (memchr(RSTRING(specials)->ptr, c, RSTRING(specials)->len))
-          *t++ = '\\';
+          *t++ = RSTRING(specials)->ptr[0];
         *t++ = c;
       }
       rb_str_resize(tmp, t - RSTRING(tmp)->ptr);
@@ -167,6 +168,31 @@ static VALUE escape(VALUE str, VALUE specials)
       return tmp;
     }
   }
+  return str;
+}
+
+
+static VALUE unescape(VALUE str, VALUE prefix)
+/*
+ * In str, remove all escapes previously inserted by the escape method
+ * prefix should be Fixnum char code (usually specials.ord from the escape call)
+ * returns str
+ */
+{
+  unsigned meta = NUM2UINT(prefix);
+  unsigned char *s = RSTRING(str)->ptr;
+  unsigned char *d = s;
+  unsigned char *send = s + RSTRING(str)->len;
+  for (; s < send; s++) {
+    if (*s == meta) {
+      s++;
+      if (s == send)
+        rb_raise(rb_eArgError, "escaped String ends with '%c'", meta);
+    }
+    *d++ = *s;
+  }
+  if (d < s)
+    rb_str_resize(str, (char *)d - RSTRING(str)->ptr);
   return str;
 }
 
@@ -399,6 +425,8 @@ Init_mbarilib()
     rb_define_method(rb_mPort, "getBlock", getBlockPort, -1);
 
     rb_define_method(rb_cString, "escape", escape, 1);
+    rb_define_method(rb_cString, "unescape", unescape, 1);
+
     rb_define_method(rb_cString, "asCardinal1", asCardinal1, 1);
     rb_define_method(rb_cString, "asCardinal2", asCardinal2, 1);
     rb_define_method(rb_cString, "asCardinal3", asCardinal3, 1);
