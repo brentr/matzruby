@@ -121,8 +121,7 @@ getBlockPort(argc, argv, io)
     count = num2ulong(len);
     if (args > 1) {
         size_t prefixLen;
-        if (TYPE(result) != T_STRING)
-            rb_raise(rb_eTypeError, "optional arg to getBlock not String");
+        StringValue(result);
         prefixLen = RSTRING(result)->len;
         rb_str_resize(result, prefixLen + count);
         cursor = RSTRING(result)->ptr + prefixLen;
@@ -135,6 +134,40 @@ getBlockPort(argc, argv, io)
         *cursor++ = FIX2LONG(getcPort(io));
 }
     return result;
+}
+
+
+static VALUE escape(VALUE str, VALUE specials)
+/*
+ * In str, prefix each occurance of any character in specials with a backslash
+ * If str is unchanged, returns str, else returns a new String
+ */
+{
+  char *s = RSTRING(str)->ptr;
+  char *send = s + RSTRING(str)->len;
+  StringValue(specials);
+
+  for (; s < send; s++) {
+    if (memchr(RSTRING(specials)->ptr, *s, RSTRING(specials)->len)) {
+      size_t unEscLen = s - RSTRING(str)->ptr;
+      VALUE tmp = rb_str_new(0, RSTRING(str)->len*2 - unEscLen);
+      char *t = RSTRING(tmp)->ptr;
+      /* copy upto metacharacter */
+      memcpy(t, RSTRING(str)->ptr, unEscLen);
+      t += unEscLen;
+
+      for (; s < send; s++) {
+        int c = *s;
+	    if (memchr(RSTRING(specials)->ptr, c, RSTRING(specials)->len))
+          *t++ = '\\';
+        *t++ = c;
+      }
+      rb_str_resize(tmp, t - RSTRING(tmp)->ptr);
+      OBJ_INFECT(tmp, str);
+      return tmp;
+    }
+  }
+  return str;
 }
 
 
@@ -223,8 +256,7 @@ static VALUE asInteger4(VALUE s, VALUE idx)
 static unsigned char *growIndex(VALUE s, VALUE idx, size_t len)
 {
     long i = NUM2LONG(idx);
-    if (TYPE(s) != T_STRING)
-        rb_raise(rb_eTypeError, "1st arg must be String");
+    StringValue(s);
     if (i < 0)
         i += RSTRING(s)->len;
     if (i < 0)
@@ -366,6 +398,7 @@ Init_mbarilib()
     rb_define_method(rb_mPort, "getc", getcPort, 0);
     rb_define_method(rb_mPort, "getBlock", getBlockPort, -1);
 
+    rb_define_method(rb_cString, "escape", escape, 1);
     rb_define_method(rb_cString, "asCardinal1", asCardinal1, 1);
     rb_define_method(rb_cString, "asCardinal2", asCardinal2, 1);
     rb_define_method(rb_cString, "asCardinal3", asCardinal3, 1);
