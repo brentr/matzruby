@@ -3,7 +3,9 @@
 
 dir=`dirname $0` || exit
 mv ext/tk $dir 2>/dev/null
-[ -d "ext/readline" ] && mv ext/readline $dir || exit
+[ -d "ext/readline" ] && {
+  mv ext/readline $dir || exit
+}
 
 ./espinstall &&
 mv readline ext &&
