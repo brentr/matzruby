@@ -18,7 +18,7 @@
 [ "$MBARIcflags" ] && CFLAGS="$CFLAGS $MBARIcflags"
 : ${CXXFLAGS:=$CFLAGS}
 
-[ -v wipeSites ] || {
+[ ${wipeSites+x} ] || {
   gccVersion=`$CC -v 2>&1 | tail -1` || exit
 
   gccMajorVersion()
