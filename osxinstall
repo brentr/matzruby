@@ -1,0 +1,13 @@
+#!/bin/sh
+#build and install MBARI Ruby for MacOSx
+
+dir=`dirname $0` || exit
+mv ext/tk $dirname 2>/dev/null
+[ -d "ext/readline" ] && mv ext/readline $dirname || exit
+
+./espinstall &&
+mv readline ext &&
+cd ext/readline &&
+../../miniruby extconf.rb --with-readline-dir=/opt/mbari &&
+make &&
+sudo make install  #install ruby readline library binding

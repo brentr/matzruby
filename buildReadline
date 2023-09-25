@@ -1,0 +1,23 @@
+#!/bin/sh
+#build readline-5.2 from source with tweaks for MacOSx
+
+srcURL=ftp://ftp.gnu.org/pub/gnu/readline/readline-5.2.tar.gz
+shObjConf=support/shobj-conf
+cflags="-ansi -Wno-implicit-function-declaration" 
+
+mkdir -p readline
+cd readline &&
+curl -o readline-5.2.tar.gz $srcURL &&
+tar xzf readline-5.2.tar.gz &&
+
+cd readline-5.2 &&
+
+#tweak ancient build script to recognize later versions of MacOS / Darwin
+sed -ie 's/darwin\[78\]\*/darwin*/' $shObjConf &&
+sed -ie 's%-arch_only `/usr/bin/arch`%%g' $shObjConf &&
+
+autoconf && autoupdate &&
+configure --prefix=/opt/mbari LOCAL_CFLAGS="$cflags" &&
+make &&
+sudo  make install
+

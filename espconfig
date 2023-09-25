@@ -1,5 +1,5 @@
 #!/bin/bash
-# configure ESP MBARI Ruby build for workstation -- 10/17/22 brent@mbari.org
+# configure ESP MBARI Ruby build for workstation -- 9/25/23 brent@mbari.org
 # for gcc x86 add:
 #  -fno-stack-protector
 # to CFLAGS
@@ -7,7 +7,7 @@
 # gcc version >= 10 targeting i386 requires STACK_WIPE_SITES 0x4xxx
 # otherwise produces broken binaries at -O2 or higher 
 # Use:
-#   espconfig CC=gcc-9  #unless STACK_WIPE_SITES is redefined in rubysig.h
+#   espconfig CC=gcc-9
 #
 # Requires zlib1g-dev package
 # Requires obsolete libreadline.so.5 & /usr/include/readline
@@ -15,7 +15,29 @@
 #
 : ${CC:=gcc}
 : ${CFLAGS:="-O2 -g -Wclobbered -fno-tree-dce -fno-stack-protector"}
+[ "$MBARIcflags" ] && CFLAGS="$CFLAGS $MBARIcflags"
 : ${CXXFLAGS:=$CFLAGS}
+
+[ -v wipeSites ] || {
+  gccVersion=`$CC -v 2>&1 | tail -1` || exit
+
+  gccMajorVersion()
+  {
+    echo $1 | {
+      read gcc version fullVersion extra
+      echo $fullVersion | {
+        IFS=. read gccMajor gccExtra
+        echo $gccMajor
+      }
+    }
+  }
+
+  major=`gccMajorVersion "$gccVersion"`
+  wipeSites=0x8770
+  [ $major -gt 9 ] && wipeSites=0x4770
+}
+[ "$wipeSites" ] && CFLAGS="$CFLAGS -DSTACK_WIPE_SITES=$wipeSites"
+
 for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
