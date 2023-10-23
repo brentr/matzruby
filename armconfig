@@ -1,11 +1,15 @@
 #!/bin/bash
-# configure ruby mbariRuby build for arm-linux -- 1/15/21 brent@mbari.org
+# configure ruby mbariRuby build for arm-linux -- 10/22/23 brent@mbari.org
 # for gcc x86 add:
 # -fno-stack-protector
 # to CFLAGS
+# Also note that gcc >=4.7 requires -fno-tree-dce
+# gcc version >= 10 targeting i386 requires STACK_WIPE_SITES 0x4xxx
+# otherwise produces broken binaries at -O2 or higher 
 : ${CFLAGS:="-O2 -g"}
 : ${rubyCC:=gcc}
 : ${rubyCFLAGS:="-Os -g"}
+[ "$MBARIcflags" ] && CFLAGS="$CFLAGS $MBARIcflags"
 : ${CXXFLAGS:=$CFLAGS}
 : ${ARMGCC:=/arm}
 : ${ARMPREFIX:=$ARMGCC/usr}
@@ -15,7 +19,21 @@
 for mod in mbarilib termios .; do
   [ -r $mod/Makefile ] && make -C $mod MINIRUBY=miniruby distclean
 done
+
+read gcc version fullVersion extra <<< "$($CC -v 2>&1 | tail -1)" || exit
+IFS=. read gccMajor gccMinor gccExtra <<< "$fullVersion"
+unset IFS
+
+[ $gccMajor -ge 4 ] && CFLAGS="$CFLAGS -fno-stack-protector -fno-tree-dce"
+ 
+[ ${wipeSites+x} ] || {
+  wipeSites=0x8770
+  [ $gccMajor -gt 9 ] && wipeSites=0x4770
+}
+[ "$wipeSites" ] && CFLAGS="$CFLAGS -DSTACK_WIPE_SITES=$wipeSites"
+
 export CFLAGS CXXFLAGS
+
 rm -f config.cache configure ext/readline/libreadline.so*
 autoconf || exit $?
 if [ ! -x miniruby ]; then
