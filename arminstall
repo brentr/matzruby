@@ -46,8 +46,8 @@ export prefix=$ARMPREFIX
 
 rm -rf $TOP/bin/ruby $TOP/lib/ruby &&
 mkdir -p $TOP &&
-make RUBYLIB=$srctop/lib -o miniruby -j4 prefix=$prefix all &&
-make RUBYLIB=$srctop/lib -o miniruby install || exit 1
+make RUBYLIB=$srctop/lib EXTLDFLAGS="$EXTLDFLAGS" -o miniruby -j4 prefix=$prefix all &&
+make RUBYLIB=$srctop/lib EXTLDFLAGS="$EXTLDFLAGS" -o miniruby install || exit 1
 [ -n "$coreOnly" ] || {
   echo "   Installing extensions required by MBARI ESP:"
   cd $startDir

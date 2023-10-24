@@ -1,0 +1,5 @@
+#!/bin/sh
+export ARMHOST=riscv64-unknown-linux-musl
+export ARMGCC=~/milkV/git/duo-buildroot-sdk/host-tools/gcc/riscv64-linux-musl-x86_64/$ARMHOST
+export EXTLDFLAGS="-mcpu=c906fdv -march=rv64imafdcv0p7xthead -mcmodel=medany -mabi=lp64d"
+exec arminstall
