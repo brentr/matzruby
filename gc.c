@@ -493,7 +493,7 @@ add_heap()
 }
 #define RANY(o) ((RVALUE*)(o))
 
-int 
+int
 rb_during_gc()
 {
     return during_gc;
@@ -671,7 +671,7 @@ push_mark_stack(VALUE ptr)
 	    mark_stack_overflow = 1;
     }
 }
-    
+
 static st_table *source_filenames;
 
 char *
@@ -747,7 +747,7 @@ gc_mark_rest()
     VALUE tmp_arry[MARK_STACK_MAX];
 #endif
     VALUE *p = tmp_arry + stackLen;
-    
+
     MEMCPY(tmp_arry, mark_stack, VALUE, stackLen);
 
     init_mark_stack();
@@ -765,7 +765,7 @@ is_pointer_to_heap(ptr)
 
     /* check if p looks like a pointer */
     heap = heaps+heaps_used;
-    while (--heap >= heaps) 
+    while (--heap >= heaps)
       if (p >= heap->slot && p < heap->slot + heap->limit)
         return Qtrue;
     return Qfalse;
@@ -861,7 +861,7 @@ rb_gc_mark(ptr)
 {
     RVALUE *obj = RANY(ptr);
     SET_STACK_END;
-    
+
     if (rb_special_const_p(ptr)) return; /* special const not marked */
     if (obj->as.basic.flags == 0) return;       /* free cell */
     if (obj->as.basic.flags & FL_MARK) return;  /* already marked */
@@ -1299,6 +1299,9 @@ static int
 obj_free(obj)
     VALUE obj;
 {
+    static unsigned bugCount = 0;
+    enum {bugLimit = 30};
+
     switch (BUILTIN_TYPE(obj)) {
       case T_NIL:
       case T_FIXNUM:
@@ -1420,8 +1423,9 @@ obj_free(obj)
 	break;
 
       default:
-	rb_bug("gc_sweep(): unknown data type 0x%lx(0x%lx)",
-	       RANY(obj)->as.basic.flags & T_MASK, obj);
+	if (bugCount < bugLimit)
+	    rb_bug("gc_sweep(): unknown data type 0x%lx(0x%lx) [%u/%u]",
+		RANY(obj)->as.basic.flags & T_MASK, obj, ++bugCount, bugLimit);
     }
 
     return 0;
@@ -1578,9 +1582,9 @@ garbage_collect()
 # ifdef nativeAllocA
   if (__stack_past (top, stack_limit)) {
   /* allocate a large frame to ensure app stack cannot grow into GC stack */
-    (void)(volatile void*) 
+    (void)(volatile void*)
     nativeAllocA(__stack_depth((void*)stack_limit,(void*)top));
-  }  
+  }
   garbage_collect_0(top);
 # else /* no native alloca() available */
   garbage_collect_0(top);
@@ -1589,7 +1593,7 @@ garbage_collect()
     if (__stack_past(rb_gc_stack_end, paddedLimit))
       rb_gc_stack_end = paddedLimit;
   }
-  rb_gc_wipe_stack();  /* wipe the whole stack area reserved for this gc */  
+  rb_gc_wipe_stack();  /* wipe the whole stack area reserved for this gc */
 # endif
 #else
   garbage_collect_0(top);
