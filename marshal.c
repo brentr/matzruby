@@ -148,8 +148,8 @@ w_nbyte(s, n, arg)
 {
     VALUE buf = arg->str;
     rb_str_buf_cat(buf, s, n);
+    if (arg->taint) OBJ_TAINT(buf);
     if (arg->dest && RSTRING(buf)->len >= BUFSIZ) {
-	if (arg->taint) OBJ_TAINT(buf);
 	rb_io_write(arg->dest, buf);
 	rb_str_resize(buf, 0);
     }
@@ -1438,7 +1438,7 @@ load_ensure(arg)
  * call-seq:
  *     load( source [, proc] ) => obj
  *     restore( source [, proc] ) => obj
- * 
+ *
  * Returns the result of converting the serialized data in source into a
  * Ruby object (possibly with associated subordinate objects). source
  * may be either an instance of IO or an object that responds to
