@@ -12760,7 +12760,7 @@ rb_thread_start_0(fn, arg, th)
     volatile VALUE thread = th->thread;
     struct BLOCK *volatile saved_block = 0;
     enum rb_thread_status status;
-    int state;
+    volatile int state;
 
     if (OBJ_FROZEN(curr_thread->thgroup)) {
 	rb_raise(rb_eThreadError,
