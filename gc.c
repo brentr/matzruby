@@ -1582,8 +1582,11 @@ garbage_collect()
 # ifdef nativeAllocA
   if (__stack_past (top, stack_limit)) {
   /* allocate a large frame to ensure app stack cannot grow into GC stack */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
     (void)(volatile void*)
     nativeAllocA(__stack_depth((void*)stack_limit,(void*)top));
+#pragma GCC diagnostic pop
   }
   garbage_collect_0(top);
 # else /* no native alloca() available */
