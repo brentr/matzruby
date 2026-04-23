@@ -6,7 +6,6 @@
 // revised Nov 21, 2012 by brent@mbari.org
 //   added many more Readline API functions
 
-#include "config.h"
 #include <errno.h>
 #include <stdio.h>
 #include <ctype.h>
