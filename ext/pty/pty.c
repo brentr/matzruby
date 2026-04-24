@@ -5,6 +5,7 @@
 #include	<fcntl.h>
 #include	<errno.h>
 #include	<pwd.h>
+#include "ruby.h"
 #ifdef HAVE_SYS_IOCTL_H
 #include	<sys/ioctl.h>
 #endif
@@ -21,7 +22,6 @@
 #endif
 #include <ctype.h>
 
-#include "ruby.h"
 #include "rubyio.h"
 #include "util.h"
 
