@@ -1423,9 +1423,9 @@ obj_free(obj)
 	break;
 
       default:
-	if (bugCount < bugLimit)
-	    rb_bug("gc_sweep(): unknown data type 0x%lx(0x%lx) [%u/%u]",
-		RANY(obj)->as.basic.flags & T_MASK, obj, ++bugCount, bugLimit);
+	(++bugCount < bugLimit ? rb_err : rb_bug)
+	    ("gc_sweep(): unknown data type 0x%lx(0x%lx) [%u/%u]",
+		RANY(obj)->as.basic.flags & T_MASK, obj, bugCount, bugLimit);
     }
 
     return 0;

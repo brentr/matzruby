@@ -596,6 +596,7 @@ NORETURN(void rb_iter_break _((void)));
 NORETURN(void rb_exit _((int)));
 NORETURN(void rb_notimplement _((void)));
 
+void rb_err __((const char*, ...));       /* like rb_bug, but does not abort */
 void rb_warning __((const char*, ...));		/* reports if `-w' specified */
 void rb_sys_warning __((const char*, ...));	/* reports if `-w' specified */
 void rb_warn __((const char*, ...));		/* reports always */
